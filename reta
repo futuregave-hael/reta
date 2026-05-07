@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reta Product Flashcard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink: #e8317a;
+    --pink-light: #fde8f2;
+    --pink-mid: #f7b8d8;
+    --dark: #1a1020;
+    --gray: #6b5f72;
+    --bg: #fdf5f9;
+    --white: #ffffff;
+    --green: #2ecc8a;
+    --yellow: #f5c842;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    color: var(--dark);
+  }
+
+  header {
+    background: var(--dark);
+    color: white;
+    padding: 18px 20px 14px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+  }
+
+  header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.5rem;
+    letter-spacing: 0.02em;
+  }
+
+  header h1 span { color: var(--pink); }
+
+  .subtitle {
+    font-size: 0.75rem;
+    color: var(--pink-mid);
+    margin-top: 2px;
+    font-weight: 300;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    overflow-x: auto;
+    gap: 0;
+    background: var(--dark);
+    padding: 0 16px 12px;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+
+  .tab {
+    flex-shrink: 0;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1.5px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.6);
+    background: transparent;
+    transition: all 0.2s;
+    margin-right: 6px;
+    white-space: nowrap;
+  }
+  .tab.active {
+    background: var(--pink);
+    border-color: var(--pink);
+    color: white;
+  }
+
+  /* STATS BAR */
+  .stats {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 12px 20px;
+    background: white;
+    border-bottom: 1px solid var(--pink-light);
+    font-size: 0.75rem;
+    color: var(--gray);
+  }
+  .stats span strong { color: var(--dark); }
+
+  /* MODE TOGGLE */
+  .mode-bar {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    align-items: center;
+  }
+  .mode-btn {
+    flex: 1;
+    padding: 8px;
+    border-radius: 10px;
+    border: 2px solid var(--pink-light);
+    background: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--gray);
+    transition: all 0.2s;
+  }
+  .mode-btn.active {
+    background: var(--pink);
+    border-color: var(--pink);
+    color: white;
+  }
+
+  /* SEARCH */
+  .search-wrap {
+    padding: 0 16px 10px;
+  }
+  .search-wrap input {
+    width: 100%;
+    padding: 10px 16px;
+    border-radius: 12px;
+    border: 2px solid var(--pink-light);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    outline: none;
+    background: white;
+    color: var(--dark);
+  }
+  .search-wrap input:focus { border-color: var(--pink); }
+
+  /* CARD LIST MODE */
+  .card-list {
+    padding: 0 16px 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1.5px solid var(--pink-light);
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(232,49,122,0.06);
+  }
+  .card:hover { box-shadow: 0 4px 16px rgba(232,49,122,0.15); transform: translateY(-1px); }
+
+  .card-front {
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .card-nota {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1rem;
+    color: var(--pink);
+    font-weight: 400;
+    margin-bottom: 4px;
+  }
+
+  .badge-container {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .card-category-badge {
+    font-size: 0.65rem;
+    padding: 3px 8px;
+    border-radius: 8px;
+    background: var(--pink-light);
+    color: var(--pink);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .bpom-badge {
+    font-size: 0.65rem;
+    padding: 3px 8px;
+    border-radius: 8px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .bpom-true {
+    background: #e8faf3;
+    color: #1a7a52;
+  }
+  .bpom-false {
+    background: #fff0f5;
+    color: #c0205a;
+  }
+
+  .card-back {
+    display: none;
+    padding: 0 16px 14px;
+    border-top: 1px dashed var(--pink-light);
+    padding-top: 12px;
+    animation: slideDown 0.2s ease;
+  }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card.open .card-back { display: block; }
+  .card.open { border-color: var(--pink); }
+
+  .card-resmi {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--dark);
+    margin-bottom: 4px;
+  }
+
+  .card-fungsi {
+    font-size: 0.8rem;
+    color: var(--gray);
+    line-height: 1.5;
+  }
+
+  .card-chevron {
+    font-size: 0.8rem;
+    color: var(--pink-mid);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+  .card.open .card-chevron { transform: rotate(180deg); }
+
+  /* FLASHCARD QUIZ MODE */
+  .quiz-wrap {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding-bottom: 80px;
+  }
+
+  .quiz-progress {
+    width: 100%;
+    font-size: 0.75rem;
+    color: var(--gray);
+    text-align: center;
+  }
+
+  .progress-bar {
+    width: 100%;
+    height: 4px;
+    background: var(--pink-light);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 4px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--pink);
+    border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+
+  .flashcard {
+    width: 100%;
+    min-height: 220px;
+    perspective: 1000px;
+    cursor: pointer;
+  }
+
+  .flashcard-inner {
+    width: 100%;
+    min-height: 220px;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
+
+  .fc-front, .fc-back {
+    position: absolute;
+    width: 100%;
+    min-height: 220px;
+    backface-visibility: hidden;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 24px;
+    text-align: center;
+  }
+
+  .fc-front {
+    background: linear-gradient(135deg, var(--dark) 0%, #2d1a3a 100%);
+    color: white;
+    box-shadow: 0 8px 32px rgba(26,16,32,0.25);
+  }
+
+  .fc-back {
+    background: linear-gradient(135deg, var(--pink) 0%, #c0205a 100%);
+    color: white;
+    transform: rotateY(180deg);
+    box-shadow: 0 8px 32px rgba(232,49,122,0.3);
+  }
+
+  .fc-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    opacity: 0.6;
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+
+  .fc-main {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2rem;
+    line-height: 1.2;
+    margin-bottom: 10px;
+  }
+
+  .fc-sub {
+    font-size: 0.8rem;
+    opacity: 0.9;
+    line-height: 1.5;
+  }
+
+  .fc-hint {
+    font-size: 0.7rem;
+    opacity: 0.5;
+    margin-top: 16px;
+  }
+
+  .quiz-actions {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .btn-wrong {
+    flex: 1;
+    padding: 14px;
+    border-radius: 14px;
+    border: none;
+    background: #fff0f5;
+    color: #c0205a;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid #fcc;
+  }
+  .btn-correct {
+    flex: 1;
+    padding: 14px;
+    border-radius: 14px;
+    border: none;
+    background: #e8faf3;
+    color: #1a7a52;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid #a8e6cc;
+  }
+  .btn-wrong:hover { background: #ffd0e0; }
+  .btn-correct:hover { background: #c2f0dd; }
+
+  .btn-next {
+    width: 100%;
+    padding: 14px;
+    border-radius: 14px;
+    border: none;
+    background: var(--dark);
+    color: white;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-next:hover { background: var(--pink); }
+
+  .score-card {
+    width: 100%;
+    background: white;
+    border-radius: 20px;
+    padding: 28px 20px;
+    text-align: center;
+    border: 2px solid var(--pink-light);
+    box-shadow: 0 8px 32px rgba(232,49,122,0.1);
+  }
+  .score-big {
+    font-family: 'DM Serif Display', serif;
+    font-size: 4rem;
+    color: var(--pink);
+    line-height: 1;
+  }
+  .score-label { font-size: 0.85rem; color: var(--gray); margin: 8px 0 20px; }
+
+  .btn-restart {
+    width: 100%;
+    padding: 14px;
+    border-radius: 14px;
+    border: none;
+    background: var(--pink);
+    color: white;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+
+  .empty { text-align: center; padding: 40px 20px; color: var(--gray); font-size: 0.9rem; }
+
+  /* HIDDEN */
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Reta <span>Product</span> Flashcard</h1>
+  <div class="subtitle">Hafal nama produk dengan mudah ✨</div>
+</header>
+
+<div class="tabs" id="tabs"></div>
+
+<div class="stats">
+  <span>Total: <strong id="stat-total">0</strong></span>
+  <span>Kategori: <strong id="stat-cat">0</strong></span>
+  <span id="stat-score-wrap">Skor: <strong id="stat-score">—</strong></span>
+</div>
+
+<div class="mode-bar">
+  <button class="mode-btn active" id="btn-list" onclick="setMode('list')">📋 Daftar</button>
+  <button class="mode-btn" id="btn-quiz" onclick="setMode('quiz')">🎯 Kuis Flashcard</button>
+</div>
+
+<div class="search-wrap" id="search-wrap">
+  <input type="text" id="search" placeholder="🔍 Cari nama produk..." oninput="renderList()">
+</div>
+
+<div class="card-list" id="card-list"></div>
+
+<div class="quiz-wrap hidden" id="quiz-wrap">
+  <div class="quiz-progress">
+    <span id="quiz-prog-text">Kartu 1 dari 10</span>
+    <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
+  </div>
+  <div class="flashcard" id="flashcard" onclick="flipCard()">
+    <div class="flashcard-inner" id="flashcard-inner">
+      <div class="fc-front">
+        <div class="fc-label">Nama di Nota</div>
+        <div class="fc-main" id="fc-nota">—</div>
+        <div class="fc-sub" id="fc-cat">—</div>
+        <div class="fc-hint">Ketuk untuk lihat jawaban</div>
+      </div>
+      <div class="fc-back">
+        <div class="fc-label">Nama Resmi & Fungsi</div>
+        <div class="fc-main" id="fc-resmi" style="font-size:1.3rem">—</div>
+        <div class="fc-sub" id="fc-fungsi">—</div>
+      </div>
+    </div>
+  </div>
+  <div class="quiz-actions" id="quiz-actions" style="display:none">
+    <button class="btn-wrong" onclick="answer(false)">✗ Belum hafal</button>
+    <button class="btn-correct" onclick="answer(true)">✓ Hafal!</button>
+  </div>
+  <button class="btn-next hidden" id="btn-next" onclick="nextCard()">Kartu Berikutnya →</button>
+  <div class="score-card hidden" id="score-card">
+    <div class="score-big" id="score-num">0</div>
+    <div class="score-label">dari <span id="score-total">0</span> kartu yang benar</div>
+    <button class="btn-restart" onclick="startQuiz()">🔄 Ulangi Kuis</button>
+  </div>
+</div>
+
+<script>
+const products = [
+  // CLEANSER
+  { nota: "Cleanser Brightening", resmi: "Cleanser Brightening", fungsi: "Kulit normal", cat: "Cleanser", bpom: true },
+  { nota: "Miracle Water (MW)", resmi: "Miracle Water", fungsi: "Kulit komedo & jerawat", cat: "Cleanser", bpom: false },
+
+  // FACIAL WASH
+  { nota: "Facial Wash Acne", resmi: "Facial Wash Acne", fungsi: "Kulit berjerawat", cat: "Facial Wash", bpom: true },
+  { nota: "Facial Wash Sensitive", resmi: "Facial Wash Sensitive", fungsi: "Kulit sensitive & kering", cat: "Facial Wash", bpom: true },
+  { nota: "Facial Wash Brightening", resmi: "Facial Wash Brightening", fungsi: "Kulit normal, mencerahkan", cat: "Facial Wash", bpom: true },
+  { nota: "Facial Wash Vit C", resmi: "Facial Wash Vitamin C", fungsi: "Kulit normal, melembabkan & mencerahkan", cat: "Facial Wash", bpom: true },
+  { nota: "Facial Wash Charcoal", resmi: "Facial Wash Charcoal", fungsi: "Kulit berminyak", cat: "Facial Wash", bpom: true },
+  { nota: "Facial Wash Acne Neo", resmi: "Facial Wash Acne Neo", fungsi: "Kulit berjerawat & oily", cat: "Facial Wash", bpom: false },
+
+  // FACE TONIC
+  { nota: "Face Tonic Brightening", resmi: "Face Tonic Brightening", fungsi: "Kulit normal", cat: "Face Tonic", bpom: true },
+  { nota: "Face Tonic Sensitive", resmi: "Face Tonic Sensitive", fungsi: "Kulit normal, sensitive & kering", cat: "Face Tonic", bpom: true },
+  { nota: "Face Tonic Acne", resmi: "Face Tonic Acne", fungsi: "Kulit berminyak & jerawat", cat: "Face Tonic", bpom: true },
+
+  // KRIM PAGI
+  { nota: "AF Cream", resmi: "AF Cream", fungsi: "Acne banyak & meradang", cat: "Krim Pagi", bpom: false },
+  { nota: "AC 4", resmi: "AC 4", fungsi: "Acne, kulit berminyak", cat: "Krim Pagi", bpom: false },
+  { nota: "ACG2P", resmi: "ACG2P", fungsi: "Acne sedikit, oily, komedo. Antibiotik, bisa setelah Laser CO2, BUMIL", cat: "Krim Pagi", bpom: false },
+  { nota: "Acne Dry Skin", resmi: "Acne Dry Skin", fungsi: "Acne + kering, BUMIL (pagi/malam)", cat: "Krim Pagi", bpom: false },
+  { nota: "SA Cream", resmi: "SA Cream (Salicylate Acid)", fungsi: "Acne, komedo, mengandung Salicylate Acid (mirip IA)", cat: "Krim Pagi", bpom: false },
+  { nota: "IA", resmi: "IA", fungsi: "Kering, komedo", cat: "Krim Pagi", bpom: false },
+  { nota: "IA+", resmi: "IA Plus", fungsi: "Kering, komedo, bruntus — pelembab lebih banyak", cat: "Krim Pagi", bpom: false },
+  { nota: "AC 1", resmi: "AC 1", fungsi: "Normal, komedo", cat: "Krim Pagi", bpom: false },
+  { nota: "BC 1", resmi: "BC 1", fungsi: "Normal, komedo", cat: "Krim Pagi", bpom: false },
+  { nota: "Emolient", resmi: "Emolient", fungsi: "Kering, melembabkan", cat: "Krim Pagi", bpom: false },
+  { nota: "Rich Moisturizing Cream", resmi: "Rich Moisturizing Cream", fungsi: "Kering, anti aging, melembabkan", cat: "Krim Pagi", bpom: false },
+  { nota: "Moist Cream Brightening (MW)", resmi: "Moist Cream Brightening", fungsi: "Mencerahkan, normal-kering, BUMIL", cat: "Krim Pagi", bpom: true },
+  { nota: "Niacinamide Moist Cream", resmi: "Niacinamide Moist Cream", fungsi: "Melembabkan, mencerahkan, komedo, BUMIL", cat: "Krim Pagi", bpom: true },
+  { nota: "WR-F", resmi: "WR-F", fungsi: "Normal, kerutan", cat: "Krim Pagi", bpom: false },
+  { nota: "Melasma Gold", resmi: "Melasma Gold", fungsi: "Flek sedikit", cat: "Krim Pagi", bpom: false },
+  { nota: "TR-2", resmi: "TR-2", fungsi: "Flek banyak", cat: "Krim Pagi", bpom: false },
+  { nota: "CCP", resmi: "CCP (lebih mahal & dosis lebih)", fungsi: "Flek banyak", cat: "Krim Pagi", bpom: false },
+
+  // SUNSCREEN
+  { nota: "SAG Premium++", resmi: "SAG Premium++", fungsi: "SPF 45, acne, komedo, tambahan pelembab, whitecast", cat: "Sunscreen", bpom: false },
+  { nota: "SAG Premium / SAP", resmi: "Sunscreen Acne Premium (SAG Premium)", fungsi: "SPF 45, acne, komedo", cat: "Sunscreen", bpom: true },
+  { nota: "SAC", resmi: "Sunscreen Acne (SAC)", fungsi: "SPF 45, acne, komedo, kering", cat: "Sunscreen", bpom: true },
+  { nota: "SWHN", resmi: "Sunscreen Normal Skin (SWHN)", fungsi: "SPF 30, kulit normal", cat: "Sunscreen", bpom: true },
+  { nota: "SWHO", resmi: "Sunscreen Brightening for Normal Skin (SWHO)", fungsi: "SPF 30, kulit normal-oily", cat: "Sunscreen", bpom: true },
+  { nota: "TP 70", resmi: "Sunscreen Ultra Protection (TP 70)", fungsi: "SPF 70, kulit normal", cat: "Sunscreen", bpom: true },
+  { nota: "TP 80", resmi: "Perfect UV Sunscreen (TP 80)", fungsi: "SPF 80, kulit normal", cat: "Sunscreen", bpom: true },
+  { nota: "TP 50 Gold", resmi: "Suncare UV Protection (TP 50 Gold)", fungsi: "SPF 50, kulit normal-dry", cat: "Sunscreen", bpom: true },
+  { nota: "SC 50 Gold (Tirai Coklat)", resmi: "SC 50 Gold", fungsi: "SPF 50, kulit normal, kering, sensitive", cat: "Sunscreen", bpom: false },
+  { nota: "TC 50 Gold (Tirai Coklat)", resmi: "TC 50 Gold", fungsi: "SPF 50, kulit normal, berwarna coklat (warna cream)", cat: "Sunscreen", bpom: false },
+  { nota: "TM-30 (Tirai Merah)", resmi: "TM-30", fungsi: "SPF 30, kulit normal, berwarna coklat", cat: "Sunscreen", bpom: false },
+  { nota: "S-GEL", resmi: "Sunscreen Protection S-Gel", fungsi: "SPF 45, kulit berminyak, cepat meresap", cat: "Sunscreen", bpom: true },
+  { nota: "Ultra Bright & Moist Sunscreen", resmi: "Ultra Bright & Moist Sunscreen", fungsi: "SPF 30, anti aging, melembabkan", cat: "Sunscreen", bpom: false },
+  { nota: "Spot Brown", resmi: "Spot Brown", fungsi: "SPF 30, sunblock + krim pagi, berwarna coklat, kulit normal, flek, BUMIL", cat: "Sunscreen", bpom: false },
+
+  // KRIM MALAM
+  { nota: "MCT", resmi: "MCT", fungsi: "Acne banyak, kulit sensitive", cat: "Krim Malam", bpom: false },
+  { nota: "DF Cream", resmi: "DF Cream", fungsi: "Acne banyak, meradang", cat: "Krim Malam", bpom: false },
+  { nota: "ACT", resmi: "ACT", fungsi: "Acne", cat: "Krim Malam", bpom: false },
+  { nota: "TCD", resmi: "TCD", fungsi: "Bruntus, komedo", cat: "Krim Malam", bpom: false },
+  { nota: "TCD+", resmi: "TCD Plus", fungsi: "Bruntus, komedo, anti acne lebih banyak", cat: "Krim Malam", bpom: false },
+  { nota: "ACW", resmi: "ACW", fungsi: "Acne, komedo, whitening", cat: "Krim Malam", bpom: false },
+  { nota: "ACW 1", resmi: "ACW 1", fungsi: "Acne whitening, anti acne lebih banyak", cat: "Krim Malam", bpom: false },
+  { nota: "MS Acne", resmi: "MS Acne", fungsi: "Acne, BUMIL", cat: "Krim Malam", bpom: false },
+  { nota: "Retinol Boost Acne Cream", resmi: "Retinol Boost Acne Cream", fungsi: "Acne, mengandung retinol aman untuk kulit berjerawat", cat: "Krim Malam", bpom: false },
+  { nota: "Acne Spot", resmi: "Acne Spot", fungsi: "Totol di jerawat (malam)", cat: "Krim Malam", bpom: false },
+  { nota: "LH 1–6 (Lightening)", resmi: "Lightening LH 1 / 2 / 3 / 4 / 5 / 6", fungsi: "Mencerahkan, komedo, bekas jerawat", cat: "Krim Malam", bpom: false },
+  { nota: "WH 1–6 (Whitening)", resmi: "Whitening WH 1 / 2 / 3 / 4 / 5 / 6", fungsi: "Mencerahkan, kulit normal", cat: "Krim Malam", bpom: false },
+  { nota: "RRC", resmi: "Retinol Regenerating Cream (RRC)", fungsi: "Mengandung retinol, Vit C — peptide. TIDAK untuk ibu hamil", cat: "Krim Malam", bpom: true },
+  { nota: "MS (Pencerah Sensitive)", resmi: "MS Pencerah Sensitive", fungsi: "BUMIL, normal-sensitive", cat: "Krim Malam", bpom: false },
+  { nota: "LH 1–3 (S) Lightening Sensitive", resmi: "LH 1(S) / LH 2(S) / LH 3(S)", fungsi: "Lightening untuk kulit sensitif", cat: "Krim Malam", bpom: false },
+  { nota: "WH Complex / WH 1(S) (Whitening Sensitive)", resmi: "WH Complex / WH 1(S)", fungsi: "Whitening untuk kulit sensitif", cat: "Krim Malam", bpom: false },
+  { nota: "Spot Treatment", resmi: "Spot Treatment", fungsi: "Totol flek, dipakai di area flek", cat: "Krim Malam", bpom: false },
+  { nota: "CCM (Trim)", resmi: "CCM", fungsi: "Flek banyak, dipakai di seluruh wajah, selang-seling krim malam pencerah", cat: "Krim Malam", bpom: false },
+  { nota: "Cysteamin (Flek Sensi)", resmi: "Cysteamin", fungsi: "Seluruh wajah, kulit sensitive, bisa selang-seling krim malam pencerah", cat: "Krim Malam", bpom: false },
+
+  // SERUM
+  { nota: "Serum Vit C", resmi: "Serum Vitamin C", fungsi: "Pagi, anti oksidan, kulit normal, mencerahkan", cat: "Serum", bpom: false },
+  { nota: "Serum Anti Aging", resmi: "Perfect Anti Aging Serum", fungsi: "Pagi-malam, anti aging, mencerahkan, melembabkan, mari bunil friendly", cat: "Serum", bpom: true },
+  { nota: "Serum Melasma / Translucent", resmi: "Translucent Serum (Serum Melasma)", fungsi: "Pagi-malam, anti flek, mencerahkan, kulit normal", cat: "Serum", bpom: true },
+  { nota: "Serum Acne Ori", resmi: "Serum Acne Original", fungsi: "Malam, acne banyak, meradang", cat: "Serum", bpom: false },
+  { nota: "Serum Acne Platinum", resmi: "Serum Acne Platinum", fungsi: "Malam, acne sedikit, mencerahkan", cat: "Serum", bpom: false },
+  { nota: "Serum White Glow / WH", resmi: "Lightening Glow Serum (Serum White Glow)", fungsi: "Malam, mencerahkan, kulit normal, berkomedo", cat: "Serum", bpom: true },
+  { nota: "Serum Retinol / Lightening Booster", resmi: "Lightening Booster Serum (Serum Retinol)", fungsi: "Malam, mencerahkan, kulit normal", cat: "Serum", bpom: true },
+  { nota: "Pore Serum", resmi: "Pore Serum", fungsi: "Malam, menyamarkan pori, melembabkan", cat: "Serum", bpom: false },
+  { nota: "BTX Eye Serum", resmi: "BTX Eye Serum", fungsi: "Malam, mencerahkan area mata", cat: "Serum", bpom: true },
+
+  // BODY LOTION
+  { nota: "HB 50 / HB Brightening UV", resmi: "Handbody Brightening & UV Protection (HB 50)", fungsi: "Pagi, SPF 50, tangan & kaki", cat: "Body Lotion", bpom: true },
+  { nota: "HB Brightening+", resmi: "Handbody Brightening Plus", fungsi: "Malam, mencerahkan tangan & kaki", cat: "Body Lotion", bpom: true },
+  { nota: "HB White+", resmi: "HB White Plus", fungsi: "Malam, mencerahkan tangan & kaki, dosis lebih tinggi dari HB Bright+", cat: "Body Lotion", bpom: false },
+  { nota: "HB Premium", resmi: "HB Premium", fungsi: "Malam, mencerahkan tangan & kaki, dosis lebih tinggi dari HB White+", cat: "Body Lotion", bpom: false },
+  { nota: "HB Dry Skin", resmi: "HB Dry Skin", fungsi: "Pagi-malam, melembabkan tangan & kaki, bisa ditumpuk lotion pagi", cat: "Body Lotion", bpom: false },
+  { nota: "HB Multivitamin", resmi: "HB Multivitamin", fungsi: "Sore-malam, mencerahkan, meratakan warna kulit, melembabkan, tangan & kaki", cat: "Body Lotion", bpom: false },
+  { nota: "HB Slimming (Lotion Spray)", resmi: "HB Slimming", fungsi: "Setelah mandi, dioles searah jarum jam sambil dipijat di area yang ingin dikecilkan", cat: "Body Lotion", bpom: false },
+  { nota: "Radiance Body Found Spray", resmi: "Radiance Body Found Spray", fungsi: "SPF 50, wajah normal, tangan & kaki", cat: "Body Lotion", bpom: true },
+  { nota: "Radiance Body Foundation", resmi: "Radiance Body Foundation", fungsi: "SPF 30, tone up, hanya tangan & kaki", cat: "Body Lotion", bpom: false },
+
+  // BEDAK
+  { nota: "Acne Powder", resmi: "Acne Powder", fungsi: "Kulit berjerawat & komedo", cat: "Bedak", bpom: true },
+  { nota: "Normal Powder", resmi: "Normal Powder", fungsi: "Kulit normal", cat: "Bedak", bpom: true },
+
+  // FOUNDATION
+  { nota: "BB Cream Platinum", resmi: "BB Cream Platinum", fungsi: "SPF 50", cat: "Foundation", bpom: false },
+  { nota: "BB Cushion", resmi: "BB Cushion", fungsi: "SPF 30, shade Beige & Ivory", cat: "Foundation", bpom: false },
+
+  // ADDITIONAL
+  { nota: "AX Cream", resmi: "AX Cream", fungsi: "Lipatan, mencerahkan, dipakai 1-2 jam sebelum mandi", cat: "Additional", bpom: false },
+  { nota: "Pink Lip", resmi: "Pink Lip", fungsi: "Malam, mencerahkan bibir", cat: "Additional", bpom: false },
+  { nota: "Lip Care", resmi: "Lip Care", fungsi: "Pelembab bibir, bisa ditumpuk lipstick", cat: "Additional", bpom: false },
+  { nota: "DK", resmi: "DK", fungsi: "Krim anti iritasi", cat: "Additional", bpom: false },
+  { nota: "NA+", resmi: "NA Plus", fungsi: "Malam, untuk leher", cat: "Additional", bpom: false },
+  { nota: "WRL", resmi: "WRL", fungsi: "Pagi, untuk leher", cat: "Additional", bpom: false },
+  { nota: "Back Acne Spray", resmi: "Back Acne Spray", fungsi: "Jerawat punggung, pemakaian setelah mandi", cat: "Additional", bpom: false },
+  { nota: "BR Cream / Hydraskin Protection", resmi: "Hydraskin Protection (BR Cream)", fungsi: "Kulit kemerahan, sensitive, dipakai sebelum krim malam. Bentuk trim.", cat: "Additional", bpom: true },
+
+  // OBAT MINUM SLIMMING
+  { nota: "Slimming Caps Premium", resmi: "Slimming Caps Premium", fungsi: "Malam: 3 capsul sebelum makan besar. Pagi: 2 capsul setelah bangun tidur", cat: "Obat Minum", bpom: false },
+  { nota: "Slimming Caps Pagi-Malam", resmi: "Slimming Caps Pagi–Malam", fungsi: "Malam & Pagi: 1 capsul sebelum makan", cat: "Obat Minum", bpom: false },
+  { nota: "Fat Blocker", resmi: "Fat Blocker", fungsi: "Menyeimbangkan berat badan, 1x sehari sesudah makan besar", cat: "Obat Minum", bpom: false },
+  { nota: "Vistate", resmi: "Vistate", fungsi: "Menyeimbangkan berat badan, 1x sehari sesudah makan besar", cat: "Obat Minum", bpom: false },
+  { nota: "Apisate", resmi: "Apisate", fungsi: "Mengurangi nafsu makan, 1x sehari sesudah makan pagi", cat: "Obat Minum", bpom: false },
+  // OBAT MINUM WHITENING
+  { nota: "Whitening Caps Pagi-Malam", resmi: "Whitening Caps Pagi–Malam", fungsi: "Pagi & Malam: 1 capsul sesudah makan", cat: "Obat Minum", bpom: false },
+  { nota: "MAZ Caps", resmi: "MAZ Caps", fungsi: "Mengandung Vit C, 1x sehari sesudah makan malam", cat: "Obat Minum", bpom: false },
+  { nota: "Pynocare", resmi: "Pynocare", fungsi: "Vitamin untuk mengurangi flek & mencerahkan, 1x sehari sesudah makan", cat: "Obat Minum", bpom: false },
+  // OBAT MINUM ACNE
+  { nota: "Doxycore / Doxiciclin", resmi: "Doxycore / Doxiciclin", fungsi: "Antibiotik untuk jerawat, sesuai resep dokter", cat: "Obat Minum", bpom: false },
+  { nota: "Clindamycin / Anerocyd", resmi: "Clindamycin / Anerocyd", fungsi: "Antibiotik untuk jerawat, sesuai resep dokter", cat: "Obat Minum", bpom: false },
+  { nota: "Acnacare", resmi: "Acnacare", fungsi: "Vitamin untuk mengurangi komedo & jerawat, 1x sehari sesudah makan", cat: "Obat Minum", bpom: false },
+  { nota: "Isotret", resmi: "Isotret", fungsi: "1x sehari sesudah makan (diminum jika jerawat tidak sembuh setelah minum Doxy/Clinda)", cat: "Obat Minum", bpom: false },
+];
+
+const categories = ["Semua", ...new Set(products.map(p => p.cat))];
+
+let activeTab = "Semua";
+let currentMode = "list";
+let quizDeck = [];
+let quizIdx = 0;
+let quizScore = 0;
+let flipped = false;
+let answered = false;
+
+function getFiltered() {
+  const q = document.getElementById('search').value.toLowerCase();
+  return products.filter(p =>
+    (activeTab === "Semua" || p.cat === activeTab) &&
+    (p.nota.toLowerCase().includes(q) || p.resmi.toLowerCase().includes(q) || p.fungsi.toLowerCase().includes(q))
+  );
+}
+
+function renderTabs() {
+  const el = document.getElementById('tabs');
+  el.innerHTML = categories.map(c =>
+    `<button class="tab ${c === activeTab ? 'active' : ''}" onclick="setTab('${c}')">${c}</button>`
+  ).join('');
+}
+
+function setTab(cat) {
+  activeTab = cat;
+  renderTabs();
+  renderList();
+  document.getElementById('search').value = '';
+}
+
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('btn-list').classList.toggle('active', mode === 'list');
+  document.getElementById('btn-quiz').classList.toggle('active', mode === 'quiz');
+  document.getElementById('card-list').classList.toggle('hidden', mode !== 'list');
+  document.getElementById('quiz-wrap').classList.toggle('hidden', mode !== 'quiz');
+  document.getElementById('search-wrap').classList.toggle('hidden', mode !== 'list');
+  if (mode === 'quiz') startQuiz();
+}
+
+function renderList() {
+  const filtered = getFiltered();
+  const el = document.getElementById('card-list');
+  document.getElementById('stat-total').textContent = products.length;
+  document.getElementById('stat-cat').textContent = categories.length - 1;
+
+  if (filtered.length === 0) {
+    el.innerHTML = '<div class="empty">Produk tidak ditemukan 🔍</div>';
+    return;
+  }
+
+  el.innerHTML = filtered.map((p, i) => `
+    <div class="card" id="card-${i}" onclick="toggleCard(${i})">
+      <div class="card-front">
+        <div>
+          <div class="card-nota">${p.nota}</div>
+          <div class="badge-container">
+            <span class="card-category-badge">${p.cat}</span>
+            ${p.bpom ? '<span class="bpom-badge bpom-true">✓ BPOM</span>' : '<span class="bpom-badge bpom-false">Non-BPOM</span>'}
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="card-chevron">▼</span>
+        </div>
+      </div>
+      <div class="card-back">
+        <div class="card-resmi">📋 ${p.resmi}</div>
+        <div class="card-fungsi">✨ ${p.fungsi}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleCard(i) {
+  const card = document.getElementById('card-' + i);
+  card.classList.toggle('open');
+}
+
+function startQuiz() {
+  const filtered = getFiltered();
+  quizDeck = [...filtered].sort(() => Math.random() - 0.5);
+  quizIdx = 0;
+  quizScore = 0;
+  flipped = false;
+  answered = false;
+  document.getElementById('score-card').classList.add('hidden');
+  document.getElementById('flashcard').classList.remove('hidden');
+  document.getElementById('quiz-actions').style.display = 'none';
+  document.getElementById('btn-next').classList.add('hidden');
+  showCard();
+}
+
+function showCard() {
+  if (quizIdx >= quizDeck.length) {
+    endQuiz();
+    return;
+  }
+  const p = quizDeck[quizIdx];
+  document.getElementById('fc-nota').textContent = p.nota;
+  document.getElementById('fc-cat').innerHTML = `${p.cat} &bull; ${p.bpom ? '✓ BPOM' : 'Non-BPOM'}`;
+  document.getElementById('fc-resmi').textContent = p.resmi;
+  document.getElementById('fc-fungsi').textContent = p.fungsi;
+
+  const fill = ((quizIdx) / quizDeck.length * 100).toFixed(0);
+  document.getElementById('prog-fill').style.width = fill + '%';
+  document.getElementById('quiz-prog-text').textContent = `Kartu ${quizIdx + 1} dari ${quizDeck.length}`;
+
+  flipped = false;
+  answered = false;
+  document.getElementById('flashcard-inner').style.transform = '';
+  document.getElementById('flashcard').classList.remove('flipped');
+  document.getElementById('quiz-actions').style.display = 'none';
+  document.getElementById('btn-next').classList.add('hidden');
+}
+
+function flipCard() {
+  if (answered) return;
+  flipped = !flipped;
+  document.getElementById('flashcard').classList.toggle('flipped', flipped);
+  if (flipped) {
+    document.getElementById('quiz-actions').style.display = 'flex';
+  }
+}
+
+function answer(correct) {
+  if (correct) quizScore++;
+  answered = true;
+  document.getElementById('quiz-actions').style.display = 'none';
+  document.getElementById('btn-next').classList.remove('hidden');
+}
+
+function nextCard() {
+  quizIdx++;
+  showCard();
+}
+
+function endQuiz() {
+  document.getElementById('flashcard').classList.add('hidden');
+  document.getElementById('quiz-actions').style.display = 'none';
+  document.getElementById('btn-next').classList.add('hidden');
+  document.getElementById('score-card').classList.remove('hidden');
+  document.getElementById('score-num').textContent = quizScore;
+  document.getElementById('score-total').textContent = quizDeck.length;
+  document.getElementById('stat-score').textContent = `${quizScore}/${quizDeck.length}`;
+}
+
+// Init
+renderTabs();
+renderList();
+</script>
+
+</body>
+</html>
