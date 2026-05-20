@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reta Treatment Flashcard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink: #e8317a;
+    --pink-light: #fde8f2;
+    --pink-mid: #f7b8d8;
+    --dark: #1a1020;
+    --gray: #6b5f72;
+    --bg: #fdf5f9;
+    --white: #ffffff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    color: var(--dark);
+  }
+
+  header {
+    background: var(--dark);
+    color: white;
+    padding: 18px 20px 14px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+  }
+  header h1 { font-family: 'Playfair Display', serif; font-size: 1.4rem; }
+  header h1 span { color: var(--pink); }
+  .subtitle { font-size: 0.72rem; color: var(--pink-mid); margin-top: 3px; font-weight: 300; }
+
+  .tabs {
+    display: flex;
+    overflow-x: auto;
+    background: var(--dark);
+    padding: 0 16px 12px;
+    gap: 6px;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex-shrink: 0;
+    padding: 5px 13px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1.5px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.6);
+    background: transparent;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .tab.active { background: var(--pink); border-color: var(--pink); color: white; }
+
+  .stats {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 10px 20px;
+    background: white;
+    border-bottom: 1px solid var(--pink-light);
+    font-size: 0.72rem;
+    color: var(--gray);
+  }
+  .stats strong { color: var(--dark); }
+
+  .mode-bar {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px 6px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .mode-btn {
+    flex: 1;
+    min-width: 120px;
+    padding: 8px;
+    border-radius: 10px;
+    border: 2px solid var(--pink-light);
+    background: white;
+    font-size: 0.73rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--gray);
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .mode-btn.active { background: var(--pink); border-color: var(--pink); color: white; }
+
+  .sound-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1.5px solid var(--pink-light);
+    background: white;
+    color: var(--gray);
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-left: auto;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .sound-toggle.on {
+    background: var(--pink);
+    border-color: var(--pink);
+    color: white;
+  }
+
+  .search-wrap { padding: 6px 16px 10px; }
+  .search-wrap input {
+    width: 100%;
+    padding: 9px 16px;
+    border-radius: 12px;
+    border: 2px solid var(--pink-light);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.83rem;
+    outline: none;
+    background: white;
+    color: var(--dark);
+  }
+  .search-wrap input:focus { border-color: var(--pink); }
+
+  .voice-select {
+    width: calc(100% - 32px);
+    margin: 0 16px 10px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1.5px solid var(--pink-light);
+    background: white;
+    color: var(--dark);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.75rem;
+    cursor: pointer;
+    outline: none;
+  }
+  .voice-select:focus { border-color: var(--pink); }
+
+  /* LIST */
+  .card-list {
+    padding: 0 16px 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1.5px solid var(--pink-light);
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(232,49,122,0.06);
+  }
+  .card:hover { box-shadow: 0 4px 16px rgba(232,49,122,0.15); transform: translateY(-1px); }
+  .card.open { border-color: var(--pink); }
+
+  .card-front {
+    padding: 13px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    color: var(--pink);
+    margin-bottom: 4px;
+  }
+
+  .badges { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 3px; }
+  .badge {
+    font-size: 0.62rem;
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .badge-cat { background: var(--pink-light); color: var(--pink); }
+  .badge-warn { background: #fff8e6; color: #b07a00; }
+  .badge-tip { background: #e8faf3; color: #1a7a52; }
+
+  .card-chevron { font-size: 0.8rem; color: var(--pink-mid); transition: transform 0.2s; flex-shrink: 0; }
+  .card.open .card-chevron { transform: rotate(180deg); }
+
+  .card-back {
+    display: none;
+    padding: 0 16px 14px;
+    border-top: 1px dashed var(--pink-light);
+    padding-top: 11px;
+    animation: slideDown 0.2s ease;
+  }
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .card.open .card-back { display: block; }
+
+  .desc-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .desc-row .desc { flex: 1; margin-bottom: 0; }
+
+  .desc { font-size: 0.82rem; color: var(--gray); line-height: 1.6; margin-bottom: 8px; }
+  .sub-list { margin-top: 6px; }
+  .sub-item {
+    font-size: 0.78rem;
+    color: var(--dark);
+    padding: 5px 0 5px 10px;
+    border-left: 2px solid var(--pink-mid);
+    margin-bottom: 5px;
+    line-height: 1.5;
+  }
+  .sub-item strong { color: var(--pink); }
+  .warning-box {
+    margin-top: 8px;
+    padding: 7px 12px;
+    background: #fff8e6;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    color: #7a5800;
+    font-weight: 600;
+  }
+
+  /* SOUND BUTTON */
+  .sound-btn {
+    background: var(--pink-light);
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    color: var(--pink);
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .sound-btn:hover {
+    background: var(--pink);
+    color: white;
+    transform: scale(1.08);
+  }
+  .sound-btn.speaking {
+    background: var(--pink);
+    color: white;
+    animation: pulse 0.8s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(232,49,122,0.4); }
+    50% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(232,49,122,0); }
+  }
+
+  .sound-btn-quiz {
+    background: rgba(255,255,255,0.18);
+    border: 1.5px solid rgba(255,255,255,0.35);
+    color: white;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    margin-top: 14px;
+    transition: all 0.2s;
+  }
+  .sound-btn-quiz:hover {
+    background: rgba(255,255,255,0.3);
+    transform: scale(1.08);
+  }
+  .sound-btn-quiz.speaking {
+    background: white;
+    color: var(--pink);
+    animation: pulse 0.8s ease-in-out infinite;
+  }
+
+  /* QUIZ */
+  .quiz-wrap {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding-bottom: 80px;
+  }
+  .quiz-progress { width: 100%; font-size: 0.73rem; color: var(--gray); text-align: center; }
+  .progress-bar { width: 100%; height: 4px; background: var(--pink-light); border-radius: 4px; overflow: hidden; margin-top: 4px; }
+  .progress-fill { height: 100%; background: var(--pink); border-radius: 4px; transition: width 0.4s ease; }
+
+  .flashcard { width: 100%; min-height: 230px; perspective: 1000px; cursor: pointer; }
+  .flashcard-inner {
+    width: 100%; min-height: 230px;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+  .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
+
+  .fc-front, .fc-back {
+    position: absolute;
+    width: 100%; min-height: 230px;
+    backface-visibility: hidden;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 24px;
+    text-align: center;
+  }
+  .fc-front {
+    background: linear-gradient(135deg, var(--dark) 0%, #2d1a3a 100%);
+    color: white;
+    box-shadow: 0 8px 32px rgba(26,16,32,0.25);
+  }
+  .fc-back {
+    background: linear-gradient(135deg, var(--pink) 0%, #c0205a 100%);
+    color: white;
+    transform: rotateY(180deg);
+    box-shadow: 0 8px 32px rgba(232,49,122,0.3);
+  }
+  .fc-label { font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; opacity: 0.6; margin-bottom: 10px; font-weight: 600; }
+  .fc-main { font-family: 'Playfair Display', serif; font-size: 1.6rem; line-height: 1.25; margin-bottom: 8px; }
+  .fc-sub { font-size: 0.77rem; opacity: 0.9; line-height: 1.55; }
+  .fc-hint { font-size: 0.68rem; opacity: 0.5; margin-top: 14px; }
+  .fc-cat { font-size: 0.7rem; opacity: 0.7; margin-top: 6px; letter-spacing: 0.05em; }
+
+  .quiz-actions { display: flex; gap: 10px; width: 100%; }
+  .btn-wrong {
+    flex: 1; padding: 13px; border-radius: 14px;
+    background: #fff0f5; color: #c0205a;
+    font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 0.83rem;
+    cursor: pointer; border: 2px solid #fcc; transition: all 0.2s;
+  }
+  .btn-correct {
+    flex: 1; padding: 13px; border-radius: 14px;
+    background: #e8faf3; color: #1a7a52;
+    font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 0.83rem;
+    cursor: pointer; border: 2px solid #a8e6cc; transition: all 0.2s;
+  }
+  .btn-wrong:hover { background: #ffd0e0; }
+  .btn-correct:hover { background: #c2f0dd; }
+
+  .btn-next {
+    width: 100%; padding: 13px; border-radius: 14px;
+    background: var(--dark); color: white;
+    font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 0.88rem;
+    cursor: pointer; border: none; transition: all 0.2s;
+  }
+  .btn-next:hover { background: var(--pink); }
+
+  .score-card {
+    width: 100%; background: white; border-radius: 20px;
+    padding: 28px 20px; text-align: center;
+    border: 2px solid var(--pink-light);
+    box-shadow: 0 8px 32px rgba(232,49,122,0.1);
+  }
+  .score-big { font-family: 'Playfair Display', serif; font-size: 4rem; color: var(--pink); line-height: 1; }
+  .score-label { font-size: 0.83rem; color: var(--gray); margin: 8px 0 18px; }
+  .btn-restart {
+    width: 100%; padding: 13px; border-radius: 14px; border: none;
+    background: var(--pink); color: white;
+    font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 0.88rem; cursor: pointer;
+  }
+
+  .empty { text-align: center; padding: 40px 20px; color: var(--gray); font-size: 0.88rem; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Reta <span>Treatment</span> Flashcard</h1>
+  <div class="subtitle">Hafal semua jenis treatment dengan mudah ✨</div>
+</header>
+
+<div class="tabs" id="tabs"></div>
+
+<div class="stats">
+  <span>Total: <strong id="stat-total">0</strong></span>
+  <span>Kategori: <strong id="stat-cat">0</strong></span>
+  <span>Skor: <strong id="stat-score">—</strong></span>
+</div>
+
+<div class="mode-bar">
+  <button class="mode-btn active" id="btn-list" onclick="setMode('list')">📋 Daftar</button>
+  <button class="mode-btn" id="btn-quiz" onclick="setMode('quiz')">🎯 Kuis Flashcard</button>
+  <button class="sound-toggle on" id="btn-sound-toggle" onclick="toggleAutoSpeak()" title="Aktifkan/matikan suara otomatis">
+    <span id="sound-toggle-icon">🔊</span><span id="sound-toggle-label">Auto</span>
+  </button>
+</div>
+
+<div class="search-wrap" id="search-wrap">
+  <input type="text" id="search" placeholder="🔍 Cari treatment..." oninput="renderList()">
+</div>
+
+<select class="voice-select" id="voice-select" onchange="onVoiceChange()" title="Pilih suara">
+  <option value="">🎤 Pilih suara (auto)</option>
+</select>
+
+<div class="card-list" id="card-list"></div>
+
+<div class="quiz-wrap hidden" id="quiz-wrap">
+  <div class="quiz-progress">
+    <span id="quiz-prog-text">Kartu 1 dari 10</span>
+    <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
+  </div>
+  <div class="flashcard" id="flashcard" onclick="flipCard()">
+    <div class="flashcard-inner">
+      <div class="fc-front">
+        <div class="fc-label">Nama Treatment</div>
+        <div class="fc-main" id="fc-nama">—</div>
+        <div class="fc-cat" id="fc-cat-q">—</div>
+        <button class="sound-btn-quiz" id="snd-quiz-front" onclick="event.stopPropagation();speakCurrent('front')" title="Dengar pengucapan">🔊</button>
+        <div class="fc-hint">Ketuk untuk lihat jawaban</div>
+      </div>
+      <div class="fc-back">
+        <div class="fc-label">Fungsi & Keterangan</div>
+        <div class="fc-main" id="fc-fungsi" style="font-size:1.1rem;line-height:1.4">—</div>
+        <div class="fc-sub" id="fc-detail">—</div>
+        <button class="sound-btn-quiz" id="snd-quiz-back" onclick="event.stopPropagation();speakCurrent('back')" title="Dengar pengucapan">🔊</button>
+      </div>
+    </div>
+  </div>
+  <div class="quiz-actions" id="quiz-actions" style="display:none">
+    <button class="btn-wrong" onclick="answer(false)">✗ Belum hafal</button>
+    <button class="btn-correct" onclick="answer(true)">✓ Hafal!</button>
+  </div>
+  <button class="btn-next hidden" id="btn-next" onclick="nextCard()">Kartu Berikutnya →</button>
+  <div class="score-card hidden" id="score-card">
+    <div class="score-big" id="score-num">0</div>
+    <div class="score-label">dari <span id="score-total">0</span> kartu yang benar</div>
+    <button class="btn-restart" onclick="startQuiz()">🔄 Ulangi Kuis</button>
+  </div>
+</div>
+
+<script>
+const treatments = [
+
+  // ── FACIAL ──
+  {
+    nama: "Facial Therapy",
+    cat: "Facial",
+    fungsi: "Membersihkan kulit dari debu, keringat, sisa make up, menghaluskan permukaan kulit, melancarkan peredaran darah & getah bening, melembabkan & memutihkan.",
+    detail: "Menggunakan master (masker) khusus sesuai jenis kulit.",
+    subs: [
+      { label: "Master Whitening (WH)", info: "Normal, kering" },
+      { label: "Master Skin Repairing (SR)", info: "Kering, komedo, sensitif → SR = SKK" },
+      { label: "Master Acne (ACP)", info: "Berjerawat" },
+      { label: "Master White Premium", info: "Mengurangi kemerahan, sensitif" },
+      { label: "Master Green Mask", info: "Mengurangi kemerahan, sensitif" },
+    ],
+    warning: null
+  },
+  {
+    nama: "Facial Serum",
+    cat: "Facial",
+    fungsi: "Mengangkat sel kulit mati, mencerahkan, mengeringkan jerawat, mengenyalkan kulit.",
+    detail: "Macam-macam serum facial:",
+    subs: [
+      { label: "S. Whitening", info: "Normal, kering — melembabkan & mencerahkan" },
+      { label: "S. Acne", info: "Komedo, jerawat — mengeringkan jerawat meradang, mengurangi komedo" },
+      { label: "S. Melasma", info: "Normal, kering, flek — mencerahkan, melembabkan, mengurangi flek" },
+      { label: "S. Scar", info: "Normal, berminyak — mengurangi minyak, mengecilkan bopeng (scar)" },
+      { label: "S. Pori+", info: "Kering, komedo — melunatkan komedo sebelum facial" },
+    ],
+    warning: null
+  },
+  {
+    nama: "Facial Detox",
+    cat: "Facial",
+    fungsi: "Mengangkat partikel negatif di kulit wajah. Memasteri wajah dengan obat, lalu dibantu ultrasound untuk mengangkat partikel.",
+    detail: "Setelahnya berubah jadi abu-abu bahkan kehitaman, yang menandakan kulit wajah banyak kotoran.",
+    subs: [],
+    warning: null
+  },
+  {
+    nama: "Oxygen Therapy",
+    cat: "Facial",
+    fungsi: "Facial + cairan oxygen pakai alat, dengan menyemprotkan cairan di tekanan tertentu.",
+    detail: "Muka jadi lebih cerah, segar, sehat, mengeringkan jerawat.",
+    subs: [],
+    warning: "Tidak boleh basuh wajah dengan air min. 4–6 jam"
+  },
+
+  // ── PEELING ──
+  {
+    nama: "Peeling Treatment",
+    cat: "Peeling",
+    fungsi: "Metode peremajaan kulit, untuk mengangkat kulit mati & sel kulit mati, perbaiki tekstur.",
+    detail: "Menggunakan obat tertentu oleh dokter.",
+    subs: [],
+    warning: null
+  },
+  {
+    nama: "Super Whitening Peeling (SWP)",
+    cat: "Peeling",
+    fungsi: "Tidak perih di muka. Untuk mencerahkan, menghilangkan flek hitam.",
+    detail: "Pencerahan dengan proses pengelupasan kulit, agar kulit bersih & lebih cerah, sel kulit mati hilang.",
+    subs: [],
+    warning: null
+  },
+  {
+    nama: "Peeling Acne",
+    cat: "Peeling",
+    fungsi: "Mengobati & mencerahkan scar (acne) dengan metode peeling khusus.",
+    detail: "Jerawat hilang & lebih bersih. Dilakukan oleh dokter. Aman untuk bumil.",
+    subs: [],
+    warning: "Stop pakai krim malam 3 malam. Tidak boleh cuci muka selama 8 jam."
+  },
+  {
+    nama: "Peeling Anti Aging",
+    cat: "Peeling",
+    fungsi: "Mengangkat sel kulit mati, mencegah penuaan dini.",
+    detail: "Wajah lebih segar & bersih.",
+    subs: [],
+    warning: null
+  },
+  {
+    nama: "Peeling White Glow",
+    cat: "Peeling",
+    fungsi: "Mencerahkan, mengangkat sel kulit mati, mengobati kulit kering & kasar, melembutkan & melembabkan.",
+    detail: "Bisa untuk mencerahkan area lipatan.",
+    subs: [],
+    warning: null
+  },
+  {
+    nama: "Peeling Platinum",
+    cat: "Peeling",
+    fungsi: "Mampu mengangkat flek hitam serta melasma. Untuk bekas jerawat/flek, menyamarkan noda, mencerahkan kulit wajah.",
+    detail: "",
+    subs: [],
+    warning: null
+  },
+  {
+    nama: "Radiance Peeling (Oily)",
+    cat: "Peeling",
+    fungsi: "Untuk kulit berminyak, pori besar, komedo, semakin cerah juga.",
+    detail: "",
+    subs: [],
+    warning: null
+  },
+  {
+    nama: "Sensitive Peeling Acne",
+    cat: "Peeling",
+    fungsi: "Mengobati & mencegah scar dengan pakai obat khusus. Jerawat hilang & wajah kembali bersih.",
+    detail: "Aman untuk bumil.",
+    subs: [],
+    warning: null
+  },
+  {
+    nama: "Retinol Peeling",
+    cat: "Peeling",
+    fungsi: "Untuk mencerahkan, merangsang peremajaan kulit.",
+    detail: "Untuk kulit normal.",
+    subs: [],
+    warning: null
+  },
+  {
+    nama: "Chemical Peeling",
+    cat: "Peeling",
+    fungsi: "Cepat ada hasilnya. Untuk mengobati jerawat, bruntusan, hyperpigmen (flek), pori besar, kerutan, kulit kusam, warna tidak merata.",
+    detail: "Dilakukan oleh terapis. Jenis: Chemical peeling wajah = GA 35%, GA 50%, GA 70%. Leher = GA 35%, GA 50%. Tangan, kaki & punggung = GA 35%, GA 50%, GA 90%.",
+    subs: [],
+    warning: "Tidak boleh cuci muka min 2 jam"
+  },
+  {
+    nama: "Gold Peeling",
+    cat: "Peeling",
+    fungsi: "Efektif untuk masalah kulit/badan. Mengatasi flek, jerawat, kerput, kulit kusam, kasar, kering, mengatasi penuaan dini.",
+    detail: "Gold peeling 20% untuk wajah, leher, tangan, ketiak, punggung, kaki.",
+    subs: [],
+    warning: "4 jam tidak kena air"
+  },
+
+  // ── MESOTHERAPY ──
+  {
+    nama: "Mesotherapy U225",
+    cat: "Mesotherapy",
+    fungsi: "Terapi injeksi — masukin obat sesuai keluhan. Menggunakan kit U225 & spet 10m.",
+    detail: "Serum khusus antara lain: Glutathion (GSH), glicoline, dexenol, puretinol (retinol), Ascorbic Acid (puros), centela, Iderm SR.M, complex, Md acne, SRS face, MRS bright.",
+    subs: [
+      { label: "Kulit Wajah", info: "Mencerahkan, mengencangkan, menghilangkan noda hitam, mengatasi lemak di wajah (chuby & double chin)" },
+      { label: "Badan", info: "Menghilangkan selulit & lemak yang tidak diinginkan pada tubuh" },
+    ],
+    warning: null
+  },
+  {
+    nama: "Mesotherapy No Needle",
+    cat: "Mesotherapy",
+    fungsi: "Dilakukan tanpa jarum, hanya mengoles serum khusus ke wajah.",
+    detail: "",
+    subs: [],
+    warning: "Min 4–6 jam dilarang cuci muka"
+  },
+  {
+    nama: "Messo Lippo",
+    cat: "Mesotherapy",
+    fungsi: "Untuk mengurangi lemak / mengecilkan area tubuh tertentu, seperti paha, lengan, perut, double chin.",
+    detail: "Pakai obat MRS Body, Serum de Fat, Cellubis.",
+    subs: [],
+    warning: "Min 4–6 jam dilarang cuci muka"
+  },
+
+  // ── DERMA ROLLER ──
+  {
+    nama: "Derma Roller",
+    cat: "Derma Roller",
+    fungsi: "Pakai alat roller yang ada jarum, dijalankan dengan roller dengan tekanan tertentu, pakai serum khusus sesuai problem.",
+    detail: "Biasanya untuk acne (scar) di wajah.",
+    subs: [
+      { label: "Roller Manual", info: "Roller dengan alat manual tanpa mesin. Hasilnya sama dengan derma roller, bisa digunakan sampai 4x treatment." },
+      { label: "Auto Roller", info: "Roller pakai alat, kerjanya seperti mesin dermaroller tapi cuma sekali pakai saja." },
+    ],
+    warning: "Min 4–6 jam dilarang cuci muka"
+  },
+
+  // ── ALAT / LASER ──
+  {
+    nama: "Micro & Diamond Dermabrasi (MCD)",
+    cat: "Alat / Laser",
+    fungsi: "Mengangkat sel kulit mati pakai bubuk kristal. Bantu mengatasi kulit wajah karena bopeng, mengangkat sel kulit mati, meregenerasi kulit, pertumbuhan kolagen, membantu menipiskan bekas jerawat & mengecilkan pori-pori.",
+    detail: "Perbedaan: Micro = pakai diamond. Diamond Dermabrasi = tidak pakai serbuk kristal.",
+    subs: [],
+    warning: "Min 1 jam tidak boleh cuci muka"
+  },
+  {
+    nama: "Intensi Pulse Light (IPL)",
+    cat: "Alat / Laser",
+    fungsi: "Peremajaan kulit dengan sinar non laser tapi punya efektivitas seperti laser.",
+    detail: "Mengatasi noda hitam, kerutan halus, menghilangkan bulu halus di area tangan, kaki, punggung, ketiak & jerawat.",
+    subs: [],
+    warning: "Min 1 jam tidak boleh cuci muka"
+  },
+  {
+    nama: "Laser Nd YAG Q Switch",
+    cat: "Alat / Laser",
+    fungsi: "Termasuk: Laser Glowing, Laser Long Pulse, Cauter.",
+    detail: "",
+    subs: [],
+    warning: null
+  },
+  {
+    nama: "Thread Lift",
+    cat: "Alat / Laser",
+    fungsi: "Teknik pengencangan kulit wajah untuk bagian tertentu seperti pipi & hidung, dengan benang protein PDO yang diserap tubuh.",
+    detail: "Benang larut setelah 6–8 bulan. Tidak meninggalkan bekas, tanpa efek samping, memperbaiki sirkulasi pembuluh darah, mengurangi kerut secara alami. Macam benang: Canula, Pulling Cog, Vis Cog, Hiko Panjang & Hiko Pendek.",
+    subs: [],
+    warning: null
+  },
+  {
+    nama: "3 in 1 Super Facial (Oxy Geneo)",
+    cat: "Alat / Laser",
+    fungsi: "Perawatan wajah dengan 1 alat yang digabung sekaligus 4 treatment: Radio Frekuensi, Microdermabrasi, Ultrasound, dan massage.",
+    detail: "Wajah jadi tirus, putih, glowing, flek memudar, kerutan halus berkurang, kulit sehat.",
+    subs: [],
+    warning: null
+  },
+  {
+    nama: "Laser CO2 Fractional & Surgical",
+    cat: "Alat / Laser",
+    fungsi: "Perawatan khusus pakai laser untuk menghilangkan kerutan sekitar mata, bantu mengatasi hiperpigmentasi, peremajaan kulit.",
+    detail: "Mengurangi bekas luka, jerawat, jaringan parut, stretchmark, menghilangkan keratosis & milia pada kulit.",
+    subs: [],
+    warning: null
+  },
+  {
+    nama: "Fat Freezing",
+    cat: "Alat / Laser",
+    fungsi: "Mengurangi lemak di beberapa area (perut, lengan, paha).",
+    detail: "Tidak untuk penderita diabetes dan riwayat bekas operasi kurang dari 1 tahun pada bagian yang mau ditindak. Bisa diulang setelah 1 bulan.",
+    subs: [],
+    warning: null
+  },
+
+  // ── INFO PENTING ──
+  {
+    nama: "Perbedaan Chemical & Peeling Acne",
+    cat: "Info Penting",
+    fungsi: "Perbedaan chemical peeling dan peeling acne.",
+    detail: "",
+    subs: [
+      { label: "Jenis obat", info: "Berbeda" },
+      { label: "Dosis anti acne", info: "Lebih banyak di peeling acne; chemical untuk bruntusan" },
+      { label: "Pengelupasan", info: "Chemical jarang ada pengelupasan; peeling acne ada (biasanya untuk bruntusan & berminyak)" },
+      { label: "Pelaksana", info: "Peeling acne dilakukan dokter; chemical peeling oleh terapis" },
+    ],
+    warning: null
+  },
+  {
+    nama: "Aturan Umum Semua Peeling",
+    cat: "Info Penting",
+    fungsi: "Semua peeling tidak boleh kena air minimal 1–2 jam agar obat menyerap maksimal.",
+    detail: "",
+    subs: [],
+    warning: "Tidak boleh kena air / cuci muka min 1–2 jam setelah semua peeling"
+  },
+];
+
+const categories = ["Semua", ...new Set(treatments.map(t => t.cat))];
+let activeTab = "Semua";
+let currentMode = "list";
+let quizDeck = [], quizIdx = 0, quizScore = 0, flipped = false, answered = false;
+let autoSpeak = true;
+let currentSpeakingBtn = null;
+let bestVoice = null;
+
+// --- SOUND / TEXT-TO-SPEECH ---
+function isFemaleVoice(v) {
+  const name = (v.name || '').toLowerCase();
+  const femaleKeywords = [
+    'female', 'wanita', 'perempuan', 'woman',
+    'samantha', 'victoria', 'karen', 'allison', 'ava', 'susan', 'kate',
+    'serena', 'tessa', 'fiona', 'moira', 'veena', 'kathy', 'princess',
+    'aria', 'jenny', 'zira', 'eva', 'hazel', 'heera', 'catherine',
+    'linda', 'helena', 'sabina', 'michelle', 'clara', 'libby', 'sonia',
+    'natasha', 'emma', 'amber', 'ashley', 'cora', 'elizabeth', 'monica',
+    'google us english', 'google uk english female',
+    'damayanti', 'gadis'
+  ];
+  return femaleKeywords.some(kw => name.includes(kw));
+}
+
+function isNaturalVoice(v) {
+  const name = (v.name || '').toLowerCase();
+  return /natural|neural|premium|enhanced|online|wavenet/i.test(name);
+}
+
+function pickVoice() {
+  if (!('speechSynthesis' in window)) return null;
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices || voices.length === 0) return null;
+  const enVoices = voices.filter(v => /^en/i.test(v.lang));
+  const idVoices = voices.filter(v => /^id/i.test(v.lang));
+  let pick = enVoices.find(v => isFemaleVoice(v) && isNaturalVoice(v));
+  if (pick) return pick;
+  pick = enVoices.find(v => isFemaleVoice(v));
+  if (pick) return pick;
+  pick = enVoices.find(v => isNaturalVoice(v));
+  if (pick) return pick;
+  pick = enVoices.find(v => v.default) || enVoices[0];
+  if (pick) return pick;
+  pick = idVoices.find(v => isFemaleVoice(v)) || idVoices[0];
+  if (pick) return pick;
+  return voices[0];
+}
+
+function refreshBestVoice() {
+  bestVoice = pickVoice();
+  populateVoiceSelect();
+}
+
+function populateVoiceSelect() {
+  const select = document.getElementById('voice-select');
+  if (!select || !('speechSynthesis' in window)) return;
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices || voices.length === 0) return;
+  if (select.dataset.populated === String(voices.length)) return;
+  select.dataset.populated = String(voices.length);
+  const score = (v) => {
+    let s = 0;
+    if (isFemaleVoice(v)) s += 100;
+    if (isNaturalVoice(v)) s += 50;
+    if (/^en/i.test(v.lang)) s += 10;
+    if (/^id/i.test(v.lang)) s += 5;
+    return s;
+  };
+  const sorted = [...voices].sort((a, b) => score(b) - score(a));
+  const currentValue = select.value;
+  select.innerHTML = '<option value="">🎤 Auto (rekomendasi: cewek + natural)</option>';
+  sorted.forEach((v) => {
+    const flag = isFemaleVoice(v) ? '👩 ' : '';
+    const star = isNaturalVoice(v) ? '✨ ' : '';
+    const opt = document.createElement('option');
+    opt.value = v.name;
+    opt.textContent = `${flag}${star}${v.name} (${v.lang})`;
+    select.appendChild(opt);
+  });
+  if (currentValue) select.value = currentValue;
+}
+
+function onVoiceChange() {
+  const select = document.getElementById('voice-select');
+  const name = select.value;
+  if (!name) {
+    bestVoice = pickVoice();
+    return;
+  }
+  const voices = window.speechSynthesis.getVoices();
+  const found = voices.find(v => v.name === name);
+  if (found) {
+    bestVoice = found;
+    speak('Halo, ini suara saya', null);
+  }
+}
+
+function speak(text, btnId) {
+  if (!('speechSynthesis' in window)) {
+    alert('Browser Anda tidak mendukung Text-to-Speech. Coba pakai Chrome/Edge/Safari terbaru.');
+    return;
+  }
+  window.speechSynthesis.cancel();
+  if (currentSpeakingBtn) {
+    const prev = document.getElementById(currentSpeakingBtn);
+    if (prev) prev.classList.remove('speaking');
+    currentSpeakingBtn = null;
+  }
+  const cleaned = (text || '')
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/[\/\-—–]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!cleaned) return;
+  const utter = new SpeechSynthesisUtterance(cleaned);
+  const voice = bestVoice || pickVoice();
+  if (voice) {
+    utter.voice = voice;
+    utter.lang = voice.lang;
+  } else {
+    utter.lang = 'en-US';
+  }
+  utter.rate = 0.95;
+  utter.pitch = 1.0;
+  utter.volume = 1.0;
+  if (btnId) {
+    const btn = document.getElementById(btnId);
+    if (btn) {
+      btn.classList.add('speaking');
+      currentSpeakingBtn = btnId;
+      utter.onend = utter.onerror = () => {
+        btn.classList.remove('speaking');
+        if (currentSpeakingBtn === btnId) currentSpeakingBtn = null;
+      };
+    }
+  }
+  window.speechSynthesis.speak(utter);
+}
+
+function speakCurrent(side) {
+  if (!quizDeck[quizIdx]) return;
+  const t = quizDeck[quizIdx];
+  if (side === 'front') {
+    speak(t.nama, 'snd-quiz-front');
+  } else {
+    speak(t.fungsi, 'snd-quiz-back');
+  }
+}
+
+function toggleAutoSpeak() {
+  autoSpeak = !autoSpeak;
+  const btn = document.getElementById('btn-sound-toggle');
+  const icon = document.getElementById('sound-toggle-icon');
+  const label = document.getElementById('sound-toggle-label');
+  btn.classList.toggle('on', autoSpeak);
+  icon.textContent = autoSpeak ? '🔊' : '🔇';
+  label.textContent = autoSpeak ? 'Auto' : 'Mute';
+  if (!autoSpeak && 'speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
+}
+
+if ('speechSynthesis' in window) {
+  refreshBestVoice();
+  window.speechSynthesis.onvoiceschanged = refreshBestVoice;
+}
+
+function getFiltered() {
+  const q = document.getElementById('search').value.toLowerCase();
+  return treatments.filter(t =>
+    (activeTab === "Semua" || t.cat === activeTab) &&
+    (t.nama.toLowerCase().includes(q) || t.fungsi.toLowerCase().includes(q) || t.cat.toLowerCase().includes(q))
+  );
+}
+
+function renderTabs() {
+  document.getElementById('tabs').innerHTML = categories.map(c =>
+    `<button class="tab ${c === activeTab ? 'active' : ''}" onclick="setTab('${c}')">${c}</button>`
+  ).join('');
+}
+
+function setTab(cat) {
+  activeTab = cat;
+  renderTabs();
+  renderList();
+  document.getElementById('search').value = '';
+}
+
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('btn-list').classList.toggle('active', mode === 'list');
+  document.getElementById('btn-quiz').classList.toggle('active', mode === 'quiz');
+  document.getElementById('card-list').classList.toggle('hidden', mode !== 'list');
+  document.getElementById('quiz-wrap').classList.toggle('hidden', mode !== 'quiz');
+  document.getElementById('search-wrap').classList.toggle('hidden', mode !== 'list');
+  if (mode === 'quiz') startQuiz();
+}
+
+function renderList() {
+  const filtered = getFiltered();
+  const el = document.getElementById('card-list');
+  document.getElementById('stat-total').textContent = treatments.length;
+  document.getElementById('stat-cat').textContent = categories.length - 1;
+
+  if (!filtered.length) { el.innerHTML = '<div class="empty">Treatment tidak ditemukan 🔍</div>'; return; }
+
+  el.innerHTML = filtered.map((t, i) => `
+    <div class="card" id="card-${i}" onclick="toggleCard(${i})">
+      <div class="card-front">
+        <div style="flex:1;min-width:0">
+          <div class="card-title">${t.nama}</div>
+          <div class="badges">
+            <span class="badge badge-cat">${t.cat}</span>
+            ${t.warning ? `<span class="badge badge-warn">⚠ Ada Aturan</span>` : ''}
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button class="sound-btn" id="snd-front-${i}" onclick="event.stopPropagation();speak(${JSON.stringify(t.nama).replace(/"/g, '&quot;')}, 'snd-front-${i}')" title="Dengar pengucapan">🔊</button>
+          <span class="card-chevron">▼</span>
+        </div>
+      </div>
+      <div class="card-back">
+        <div class="desc-row">
+          <div class="desc">✨ ${t.fungsi}</div>
+          <button class="sound-btn" id="snd-back-${i}" onclick="event.stopPropagation();speak(${JSON.stringify(t.fungsi).replace(/"/g, '&quot;')}, 'snd-back-${i}')" title="Dengar penjelasan">🔊</button>
+        </div>
+        ${t.detail ? `<div class="desc" style="color:var(--dark);font-size:0.78rem">${t.detail}</div>` : ''}
+        ${t.subs.length ? `<div class="sub-list">${t.subs.map(s => `<div class="sub-item"><strong>${s.label}</strong>: ${s.info}</div>`).join('')}</div>` : ''}
+        ${t.warning ? `<div class="warning-box">⚠ ${t.warning}</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleCard(i) {
+  document.getElementById('card-' + i).classList.toggle('open');
+}
+
+function startQuiz() {
+  quizDeck = [...getFiltered()].sort(() => Math.random() - 0.5);
+  quizIdx = 0; quizScore = 0; flipped = false; answered = false;
+  document.getElementById('score-card').classList.add('hidden');
+  document.getElementById('flashcard').classList.remove('hidden');
+  document.getElementById('quiz-actions').style.display = 'none';
+  document.getElementById('btn-next').classList.add('hidden');
+  showCard();
+}
+
+function showCard() {
+  if (quizIdx >= quizDeck.length) { endQuiz(); return; }
+  const t = quizDeck[quizIdx];
+  document.getElementById('fc-nama').textContent = t.nama;
+  document.getElementById('fc-cat-q').textContent = t.cat;
+  document.getElementById('fc-fungsi').textContent = t.fungsi.length > 120 ? t.fungsi.substring(0,120)+'...' : t.fungsi;
+  document.getElementById('fc-detail').textContent = t.warning ? '⚠ ' + t.warning : (t.detail ? t.detail.substring(0,100) : '');
+
+  const fill = (quizIdx / quizDeck.length * 100).toFixed(0);
+  document.getElementById('prog-fill').style.width = fill + '%';
+  document.getElementById('quiz-prog-text').textContent = `Kartu ${quizIdx+1} dari ${quizDeck.length}`;
+
+  flipped = false; answered = false;
+  document.getElementById('flashcard').classList.remove('flipped');
+  document.getElementById('quiz-actions').style.display = 'none';
+  document.getElementById('btn-next').classList.add('hidden');
+
+  if (autoSpeak) {
+    setTimeout(() => speak(t.nama, 'snd-quiz-front'), 250);
+  }
+}
+
+function flipCard() {
+  if (answered) return;
+  flipped = !flipped;
+  document.getElementById('flashcard').classList.toggle('flipped', flipped);
+  if (flipped) {
+    document.getElementById('quiz-actions').style.display = 'flex';
+    if (autoSpeak && quizDeck[quizIdx]) {
+      setTimeout(() => speak(quizDeck[quizIdx].fungsi, 'snd-quiz-back'), 350);
+    }
+  }
+}
+
+function answer(correct) {
+  if (correct) quizScore++;
+  answered = true;
+  document.getElementById('quiz-actions').style.display = 'none';
+  document.getElementById('btn-next').classList.remove('hidden');
+}
+
+function nextCard() { quizIdx++; showCard(); }
+
+function endQuiz() {
+  document.getElementById('flashcard').classList.add('hidden');
+  document.getElementById('quiz-actions').style.display = 'none';
+  document.getElementById('btn-next').classList.add('hidden');
+  document.getElementById('score-card').classList.remove('hidden');
+  document.getElementById('score-num').textContent = quizScore;
+  document.getElementById('score-total').textContent = quizDeck.length;
+  document.getElementById('stat-score').textContent = `${quizScore}/${quizDeck.length}`;
+}
+
+renderTabs();
+renderList();
+</script>
+</body>
+</html>
