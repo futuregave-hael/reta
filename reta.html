@@ -968,6 +968,12 @@ function setMode(mode) {
   document.getElementById('card-list').classList.toggle('hidden', mode !== 'list');
   document.getElementById('quiz-wrap').classList.toggle('hidden', mode !== 'quiz');
   document.getElementById('search-wrap').classList.toggle('hidden', mode !== 'list');
+  // Update URL hash so the link can remember the mode
+  if (mode === 'quiz') {
+    if (window.location.hash !== '#quiz') history.replaceState(null, '', '#quiz');
+  } else {
+    if (window.location.hash) history.replaceState(null, '', window.location.pathname + window.location.search);
+  }
   if (mode === 'quiz') startQuiz();
 }
 
@@ -1091,6 +1097,11 @@ function endQuiz() {
 // Init
 renderTabs();
 renderList();
+
+// Open directly in quiz mode if URL hash is #quiz
+if (window.location.hash === '#quiz') {
+  setMode('quiz');
+}
 </script>
 
 </body>
