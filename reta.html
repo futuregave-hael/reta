@@ -103,9 +103,11 @@
     gap: 8px;
     padding: 12px 16px;
     align-items: center;
+    flex-wrap: wrap;
   }
   .mode-btn {
     flex: 1;
+    min-width: 120px;
     padding: 8px;
     border-radius: 10px;
     border: 2px solid var(--pink-light);
@@ -431,6 +433,106 @@
 
   .empty { text-align: center; padding: 40px 20px; color: var(--gray); font-size: 0.9rem; }
 
+  /* SOUND BUTTON */
+  .sound-btn {
+    background: var(--pink-light);
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    color: var(--pink);
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .sound-btn:hover {
+    background: var(--pink);
+    color: white;
+    transform: scale(1.08);
+  }
+  .sound-btn.speaking {
+    background: var(--pink);
+    color: white;
+    animation: pulse 0.8s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(232,49,122,0.4); }
+    50% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(232,49,122,0); }
+  }
+
+  .sound-btn-quiz {
+    background: rgba(255,255,255,0.18);
+    border: 1.5px solid rgba(255,255,255,0.35);
+    color: white;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    margin-top: 14px;
+    transition: all 0.2s;
+  }
+  .sound-btn-quiz:hover {
+    background: rgba(255,255,255,0.3);
+    transform: scale(1.08);
+  }
+  .sound-btn-quiz.speaking {
+    background: white;
+    color: var(--pink);
+    animation: pulse 0.8s ease-in-out infinite;
+  }
+
+  .card-resmi-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .card-resmi-row .card-resmi { margin-bottom: 0; flex: 1; }
+
+  .sound-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1.5px solid var(--pink-light);
+    background: white;
+    color: var(--gray);
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-left: auto;
+  }
+  .sound-toggle.on {
+    background: var(--pink);
+    border-color: var(--pink);
+    color: white;
+  }
+
+  .voice-select {
+    width: 100%;
+    margin: 0 16px 10px;
+    width: calc(100% - 32px);
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1.5px solid var(--pink-light);
+    background: white;
+    color: var(--dark);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.75rem;
+    cursor: pointer;
+    outline: none;
+  }
+  .voice-select:focus { border-color: var(--pink); }
+
   /* HIDDEN */
   .hidden { display: none !important; }
 </style>
@@ -453,11 +555,18 @@
 <div class="mode-bar">
   <button class="mode-btn active" id="btn-list" onclick="setMode('list')">📋 Daftar</button>
   <button class="mode-btn" id="btn-quiz" onclick="setMode('quiz')">🎯 Kuis Flashcard</button>
+  <button class="sound-toggle on" id="btn-sound-toggle" onclick="toggleAutoSpeak()" title="Aktifkan/matikan suara otomatis di kuis">
+    <span id="sound-toggle-icon">🔊</span><span id="sound-toggle-label">Auto</span>
+  </button>
 </div>
 
 <div class="search-wrap" id="search-wrap">
   <input type="text" id="search" placeholder="🔍 Cari nama produk..." oninput="renderList()">
 </div>
+
+<select class="voice-select" id="voice-select" onchange="onVoiceChange()" title="Pilih suara">
+  <option value="">🎤 Pilih suara (auto)</option>
+</select>
 
 <div class="card-list" id="card-list"></div>
 
@@ -472,12 +581,14 @@
         <div class="fc-label">Nama di Nota</div>
         <div class="fc-main" id="fc-nota">—</div>
         <div class="fc-sub" id="fc-cat">—</div>
+        <button class="sound-btn-quiz" id="snd-quiz-front" onclick="event.stopPropagation();speakCurrent('front')" title="Dengar pengucapan">🔊</button>
         <div class="fc-hint">Ketuk untuk lihat jawaban</div>
       </div>
       <div class="fc-back">
         <div class="fc-label">Nama Resmi & Fungsi</div>
         <div class="fc-main" id="fc-resmi" style="font-size:1.3rem">—</div>
         <div class="fc-sub" id="fc-fungsi">—</div>
+        <button class="sound-btn-quiz" id="snd-quiz-back" onclick="event.stopPropagation();speakCurrent('back')" title="Dengar pengucapan">🔊</button>
       </div>
     </div>
   </div>
@@ -634,6 +745,199 @@ let quizIdx = 0;
 let quizScore = 0;
 let flipped = false;
 let answered = false;
+let autoSpeak = true;
+let currentSpeakingBtn = null;
+let bestVoice = null;
+
+// --- SOUND / TEXT-TO-SPEECH ---
+// Detect female-sounding voices by their well-known names across platforms
+function isFemaleVoice(v) {
+  const name = (v.name || '').toLowerCase();
+  // Common female voice names: Apple, Microsoft, Google, Android, Indonesian
+  const femaleKeywords = [
+    'female', 'wanita', 'perempuan', 'woman',
+    // Apple
+    'samantha', 'victoria', 'karen', 'allison', 'ava', 'susan', 'kate',
+    'serena', 'tessa', 'fiona', 'moira', 'veena', 'kathy', 'princess',
+    // Microsoft
+    'aria', 'jenny', 'zira', 'eva', 'hazel', 'heera', 'catherine',
+    'linda', 'helena', 'sabina', 'michelle', 'clara', 'libby', 'sonia',
+    'natasha', 'emma', 'amber', 'ashley', 'cora', 'elizabeth', 'monica',
+    // Google
+    'google us english', 'google uk english female',
+    // Indonesian female
+    'damayanti', 'gadis'
+  ];
+  return femaleKeywords.some(kw => name.includes(kw));
+}
+
+// Detect high-quality "natural" voices (much more human-like)
+function isNaturalVoice(v) {
+  const name = (v.name || '').toLowerCase();
+  return /natural|neural|premium|enhanced|online|wavenet/i.test(name);
+}
+
+function pickVoice() {
+  if (!('speechSynthesis' in window)) return null;
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices || voices.length === 0) return null;
+
+  const enVoices = voices.filter(v => /^en/i.test(v.lang));
+  const idVoices = voices.filter(v => /^id/i.test(v.lang));
+
+  // Priority 1: Natural/Neural female English voice (most human-like)
+  let pick = enVoices.find(v => isFemaleVoice(v) && isNaturalVoice(v));
+  if (pick) return pick;
+
+  // Priority 2: Any female English voice
+  pick = enVoices.find(v => isFemaleVoice(v));
+  if (pick) return pick;
+
+  // Priority 3: Natural English voice (often female by default on macOS/Chrome)
+  pick = enVoices.find(v => isNaturalVoice(v));
+  if (pick) return pick;
+
+  // Priority 4: Default English voice
+  pick = enVoices.find(v => v.default) || enVoices[0];
+  if (pick) return pick;
+
+  // Priority 5: Female Indonesian voice
+  pick = idVoices.find(v => isFemaleVoice(v)) || idVoices[0];
+  if (pick) return pick;
+
+  return voices[0];
+}
+
+// Cache the best voice once voices are available
+function refreshBestVoice() {
+  bestVoice = pickVoice();
+  populateVoiceSelect();
+}
+
+function populateVoiceSelect() {
+  const select = document.getElementById('voice-select');
+  if (!select || !('speechSynthesis' in window)) return;
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices || voices.length === 0) return;
+
+  // Only repopulate if we haven't yet (or count changed)
+  if (select.dataset.populated === String(voices.length)) return;
+  select.dataset.populated = String(voices.length);
+
+  // Sort: female natural first, then female, then natural, then rest
+  const score = (v) => {
+    let s = 0;
+    if (isFemaleVoice(v)) s += 100;
+    if (isNaturalVoice(v)) s += 50;
+    if (/^en/i.test(v.lang)) s += 10;
+    if (/^id/i.test(v.lang)) s += 5;
+    return s;
+  };
+  const sorted = [...voices].sort((a, b) => score(b) - score(a));
+
+  const currentValue = select.value;
+  select.innerHTML = '<option value="">🎤 Auto (rekomendasi: cewek + natural)</option>';
+  sorted.forEach((v, i) => {
+    const flag = isFemaleVoice(v) ? '👩 ' : '';
+    const star = isNaturalVoice(v) ? '✨ ' : '';
+    const opt = document.createElement('option');
+    opt.value = v.name;
+    opt.textContent = `${flag}${star}${v.name} (${v.lang})`;
+    select.appendChild(opt);
+  });
+
+  // Restore selection if it still exists
+  if (currentValue) select.value = currentValue;
+}
+
+function onVoiceChange() {
+  const select = document.getElementById('voice-select');
+  const name = select.value;
+  if (!name) {
+    bestVoice = pickVoice();
+    return;
+  }
+  const voices = window.speechSynthesis.getVoices();
+  const found = voices.find(v => v.name === name);
+  if (found) {
+    bestVoice = found;
+    // Preview the selected voice
+    speak('Halo, ini suara saya', null);
+  }
+}
+
+function speak(text, btnId) {
+  if (!('speechSynthesis' in window)) {
+    alert('Browser Anda tidak mendukung Text-to-Speech. Coba pakai Chrome/Edge/Safari terbaru.');
+    return;
+  }
+  // Stop any ongoing speech
+  window.speechSynthesis.cancel();
+  if (currentSpeakingBtn) {
+    const prev = document.getElementById(currentSpeakingBtn);
+    if (prev) prev.classList.remove('speaking');
+    currentSpeakingBtn = null;
+  }
+
+  // Clean up text: remove parentheses content & symbols for cleaner pronunciation
+  const cleaned = text
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/[\/\-—–]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const utter = new SpeechSynthesisUtterance(cleaned);
+  const voice = bestVoice || pickVoice();
+  if (voice) {
+    utter.voice = voice;
+    utter.lang = voice.lang;
+  } else {
+    utter.lang = 'en-US';
+  }
+  // Slightly slower & natural pitch for human-like delivery
+  utter.rate = 0.95;
+  utter.pitch = 1.0;
+  utter.volume = 1.0;
+
+  if (btnId) {
+    const btn = document.getElementById(btnId);
+    if (btn) {
+      btn.classList.add('speaking');
+      currentSpeakingBtn = btnId;
+      utter.onend = utter.onerror = () => {
+        btn.classList.remove('speaking');
+        if (currentSpeakingBtn === btnId) currentSpeakingBtn = null;
+      };
+    }
+  }
+  window.speechSynthesis.speak(utter);
+}
+
+function speakCurrent(side) {
+  if (!quizDeck[quizIdx]) return;
+  const p = quizDeck[quizIdx];
+  if (side === 'front') speak(p.nota, 'snd-quiz-front');
+  else speak(p.resmi, 'snd-quiz-back');
+}
+
+function toggleAutoSpeak() {
+  autoSpeak = !autoSpeak;
+  const btn = document.getElementById('btn-sound-toggle');
+  const icon = document.getElementById('sound-toggle-icon');
+  const label = document.getElementById('sound-toggle-label');
+  btn.classList.toggle('on', autoSpeak);
+  icon.textContent = autoSpeak ? '🔊' : '🔇';
+  label.textContent = autoSpeak ? 'Auto' : 'Mute';
+  if (!autoSpeak && 'speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
+}
+
+// Pre-load voices (some browsers load asynchronously)
+if ('speechSynthesis' in window) {
+  refreshBestVoice();
+  window.speechSynthesis.onvoiceschanged = refreshBestVoice;
+}
 
 function getFiltered() {
   const q = document.getElementById('search').value.toLowerCase();
@@ -664,6 +968,12 @@ function setMode(mode) {
   document.getElementById('card-list').classList.toggle('hidden', mode !== 'list');
   document.getElementById('quiz-wrap').classList.toggle('hidden', mode !== 'quiz');
   document.getElementById('search-wrap').classList.toggle('hidden', mode !== 'list');
+  // Update URL hash so the link can remember the mode
+  if (mode === 'quiz') {
+    if (window.location.hash !== '#quiz') history.replaceState(null, '', '#quiz');
+  } else {
+    if (window.location.hash) history.replaceState(null, '', window.location.pathname + window.location.search);
+  }
   if (mode === 'quiz') startQuiz();
 }
 
@@ -681,7 +991,7 @@ function renderList() {
   el.innerHTML = filtered.map((p, i) => `
     <div class="card" id="card-${i}" onclick="toggleCard(${i})">
       <div class="card-front">
-        <div>
+        <div style="flex:1;min-width:0">
           <div class="card-nota">${p.nota}</div>
           <div class="badge-container">
             <span class="card-category-badge">${p.cat}</span>
@@ -689,11 +999,15 @@ function renderList() {
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px">
+          <button class="sound-btn" id="snd-front-${i}" onclick="event.stopPropagation();speak(${JSON.stringify(p.nota).replace(/"/g, '&quot;')}, 'snd-front-${i}')" title="Dengar pengucapan">🔊</button>
           <span class="card-chevron">▼</span>
         </div>
       </div>
       <div class="card-back">
-        <div class="card-resmi">📋 ${p.resmi}</div>
+        <div class="card-resmi-row">
+          <div class="card-resmi">📋 ${p.resmi}</div>
+          <button class="sound-btn" id="snd-back-${i}" onclick="event.stopPropagation();speak(${JSON.stringify(p.resmi).replace(/"/g, '&quot;')}, 'snd-back-${i}')" title="Dengar pengucapan">🔊</button>
+        </div>
         <div class="card-fungsi">✨ ${p.fungsi}</div>
       </div>
     </div>
@@ -740,6 +1054,10 @@ function showCard() {
   document.getElementById('flashcard').classList.remove('flipped');
   document.getElementById('quiz-actions').style.display = 'none';
   document.getElementById('btn-next').classList.add('hidden');
+
+  if (autoSpeak) {
+    setTimeout(() => speak(p.nota, 'snd-quiz-front'), 250);
+  }
 }
 
 function flipCard() {
@@ -748,6 +1066,9 @@ function flipCard() {
   document.getElementById('flashcard').classList.toggle('flipped', flipped);
   if (flipped) {
     document.getElementById('quiz-actions').style.display = 'flex';
+    if (autoSpeak && quizDeck[quizIdx]) {
+      setTimeout(() => speak(quizDeck[quizIdx].resmi, 'snd-quiz-back'), 350);
+    }
   }
 }
 
@@ -776,6 +1097,11 @@ function endQuiz() {
 // Init
 renderTabs();
 renderList();
+
+// Open directly in quiz mode if URL hash is #quiz
+if (window.location.hash === '#quiz') {
+  setMode('quiz');
+}
 </script>
 
 </body>
