@@ -517,6 +517,22 @@
     color: white;
   }
 
+  .voice-select {
+    width: 100%;
+    margin: 0 16px 10px;
+    width: calc(100% - 32px);
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1.5px solid var(--pink-light);
+    background: white;
+    color: var(--dark);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.75rem;
+    cursor: pointer;
+    outline: none;
+  }
+  .voice-select:focus { border-color: var(--pink); }
+
   /* HIDDEN */
   .hidden { display: none !important; }
 </style>
@@ -547,6 +563,10 @@
 <div class="search-wrap" id="search-wrap">
   <input type="text" id="search" placeholder="🔍 Cari nama produk..." oninput="renderList()">
 </div>
+
+<select class="voice-select" id="voice-select" onchange="onVoiceChange()" title="Pilih suara">
+  <option value="">🎤 Pilih suara (auto)</option>
+</select>
 
 <div class="card-list" id="card-list"></div>
 
@@ -727,17 +747,123 @@ let flipped = false;
 let answered = false;
 let autoSpeak = true;
 let currentSpeakingBtn = null;
+let bestVoice = null;
 
 // --- SOUND / TEXT-TO-SPEECH ---
+// Detect female-sounding voices by their well-known names across platforms
+function isFemaleVoice(v) {
+  const name = (v.name || '').toLowerCase();
+  // Common female voice names: Apple, Microsoft, Google, Android, Indonesian
+  const femaleKeywords = [
+    'female', 'wanita', 'perempuan', 'woman',
+    // Apple
+    'samantha', 'victoria', 'karen', 'allison', 'ava', 'susan', 'kate',
+    'serena', 'tessa', 'fiona', 'moira', 'veena', 'kathy', 'princess',
+    // Microsoft
+    'aria', 'jenny', 'zira', 'eva', 'hazel', 'heera', 'catherine',
+    'linda', 'helena', 'sabina', 'michelle', 'clara', 'libby', 'sonia',
+    'natasha', 'emma', 'amber', 'ashley', 'cora', 'elizabeth', 'monica',
+    // Google
+    'google us english', 'google uk english female',
+    // Indonesian female
+    'damayanti', 'gadis'
+  ];
+  return femaleKeywords.some(kw => name.includes(kw));
+}
+
+// Detect high-quality "natural" voices (much more human-like)
+function isNaturalVoice(v) {
+  const name = (v.name || '').toLowerCase();
+  return /natural|neural|premium|enhanced|online|wavenet/i.test(name);
+}
+
 function pickVoice() {
   if (!('speechSynthesis' in window)) return null;
   const voices = window.speechSynthesis.getVoices();
   if (!voices || voices.length === 0) return null;
-  // Prefer English voices since most product names are English
-  return voices.find(v => /en[-_](US|GB)/i.test(v.lang)) ||
-         voices.find(v => /^en/i.test(v.lang)) ||
-         voices.find(v => /^id/i.test(v.lang)) ||
-         voices[0];
+
+  const enVoices = voices.filter(v => /^en/i.test(v.lang));
+  const idVoices = voices.filter(v => /^id/i.test(v.lang));
+
+  // Priority 1: Natural/Neural female English voice (most human-like)
+  let pick = enVoices.find(v => isFemaleVoice(v) && isNaturalVoice(v));
+  if (pick) return pick;
+
+  // Priority 2: Any female English voice
+  pick = enVoices.find(v => isFemaleVoice(v));
+  if (pick) return pick;
+
+  // Priority 3: Natural English voice (often female by default on macOS/Chrome)
+  pick = enVoices.find(v => isNaturalVoice(v));
+  if (pick) return pick;
+
+  // Priority 4: Default English voice
+  pick = enVoices.find(v => v.default) || enVoices[0];
+  if (pick) return pick;
+
+  // Priority 5: Female Indonesian voice
+  pick = idVoices.find(v => isFemaleVoice(v)) || idVoices[0];
+  if (pick) return pick;
+
+  return voices[0];
+}
+
+// Cache the best voice once voices are available
+function refreshBestVoice() {
+  bestVoice = pickVoice();
+  populateVoiceSelect();
+}
+
+function populateVoiceSelect() {
+  const select = document.getElementById('voice-select');
+  if (!select || !('speechSynthesis' in window)) return;
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices || voices.length === 0) return;
+
+  // Only repopulate if we haven't yet (or count changed)
+  if (select.dataset.populated === String(voices.length)) return;
+  select.dataset.populated = String(voices.length);
+
+  // Sort: female natural first, then female, then natural, then rest
+  const score = (v) => {
+    let s = 0;
+    if (isFemaleVoice(v)) s += 100;
+    if (isNaturalVoice(v)) s += 50;
+    if (/^en/i.test(v.lang)) s += 10;
+    if (/^id/i.test(v.lang)) s += 5;
+    return s;
+  };
+  const sorted = [...voices].sort((a, b) => score(b) - score(a));
+
+  const currentValue = select.value;
+  select.innerHTML = '<option value="">🎤 Auto (rekomendasi: cewek + natural)</option>';
+  sorted.forEach((v, i) => {
+    const flag = isFemaleVoice(v) ? '👩 ' : '';
+    const star = isNaturalVoice(v) ? '✨ ' : '';
+    const opt = document.createElement('option');
+    opt.value = v.name;
+    opt.textContent = `${flag}${star}${v.name} (${v.lang})`;
+    select.appendChild(opt);
+  });
+
+  // Restore selection if it still exists
+  if (currentValue) select.value = currentValue;
+}
+
+function onVoiceChange() {
+  const select = document.getElementById('voice-select');
+  const name = select.value;
+  if (!name) {
+    bestVoice = pickVoice();
+    return;
+  }
+  const voices = window.speechSynthesis.getVoices();
+  const found = voices.find(v => v.name === name);
+  if (found) {
+    bestVoice = found;
+    // Preview the selected voice
+    speak('Halo, ini suara saya', null);
+  }
 }
 
 function speak(text, btnId) {
@@ -761,11 +887,17 @@ function speak(text, btnId) {
     .trim();
 
   const utter = new SpeechSynthesisUtterance(cleaned);
-  const voice = pickVoice();
-  if (voice) utter.voice = voice;
-  utter.lang = voice ? voice.lang : 'en-US';
-  utter.rate = 0.9;
+  const voice = bestVoice || pickVoice();
+  if (voice) {
+    utter.voice = voice;
+    utter.lang = voice.lang;
+  } else {
+    utter.lang = 'en-US';
+  }
+  // Slightly slower & natural pitch for human-like delivery
+  utter.rate = 0.95;
   utter.pitch = 1.0;
+  utter.volume = 1.0;
 
   if (btnId) {
     const btn = document.getElementById(btnId);
@@ -803,7 +935,8 @@ function toggleAutoSpeak() {
 
 // Pre-load voices (some browsers load asynchronously)
 if ('speechSynthesis' in window) {
-  window.speechSynthesis.onvoiceschanged = () => {};
+  refreshBestVoice();
+  window.speechSynthesis.onvoiceschanged = refreshBestVoice;
 }
 
 function getFiltered() {
