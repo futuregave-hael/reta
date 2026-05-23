@@ -1,0 +1,28 @@
+---
+const nav = [
+  { href: '/', label: 'Home' },
+  { href: '/blog/', label: 'Articles' },
+  { href: '/about/', label: 'About' },
+];
+const path = Astro.url.pathname;
+---
+<header class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-brand-100">
+  <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+    <a href="/" class="font-serif text-xl no-underline">
+      <span class="text-brand-900">Re</span><span class="text-brand-500">ta</span>
+    </a>
+    <nav class="flex gap-1 text-sm">
+      {nav.map((n) => (
+        <a
+          href={n.href}
+          class:list={[
+            'px-3 py-1.5 rounded-full no-underline transition',
+            path === n.href ? 'bg-brand-100 text-brand-700' : 'text-brand-900 hover:bg-brand-100',
+          ]}
+        >
+          {n.label}
+        </a>
+      ))}
+    </nav>
+  </div>
+</header>

@@ -1,0 +1,36 @@
+---
+// Renders an 18+ confirmation modal on first visit. Stores a localStorage flag.
+---
+<div id="age-gate" class="fixed inset-0 z-[100] bg-brand-900/95 backdrop-blur hidden items-center justify-center p-4">
+  <div class="max-w-md w-full bg-white rounded-2xl p-6 shadow-2xl text-center">
+    <div class="text-4xl mb-2">🔞</div>
+    <h2 class="font-serif text-2xl mb-2">Are you 18 or older?</h2>
+    <p class="text-sm text-brand-900/80 mb-5">
+      Reta covers adult dating topics. By entering, you confirm you are at least 18 years old and agree to our
+      <a class="text-brand-600 underline" href="/terms/">Terms</a> and
+      <a class="text-brand-600 underline" href="/privacy/">Privacy Policy</a>.
+    </p>
+    <div class="flex gap-3">
+      <button id="age-yes" class="btn-primary flex-1">I am 18+</button>
+      <a href="https://www.google.com" rel="noopener" class="btn-ghost flex-1">Leave</a>
+    </div>
+  </div>
+</div>
+<script is:inline>
+  (function () {
+    var KEY = 'reta_age_ok';
+    var gate = document.getElementById('age-gate');
+    if (!gate) return;
+    try {
+      if (localStorage.getItem(KEY) === '1') return;
+    } catch (e) {}
+    gate.classList.remove('hidden');
+    gate.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+    document.getElementById('age-yes').addEventListener('click', function () {
+      try { localStorage.setItem(KEY, '1'); } catch (e) {}
+      gate.classList.add('hidden');
+      document.body.style.overflow = '';
+    });
+  })();
+</script>

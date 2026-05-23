@@ -1,0 +1,42 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const cats: Record<string, string> = {
+  mature: 'Mature Dating',
+  bbw: 'Body-Positive Dating',
+  regional: 'Local Dating',
+  general: 'General',
+};
+---
+<BaseLayout
+  title="All Articles"
+  description="Long-form, no-fluff articles on mature dating, body-positive dating, and meeting locals."
+>
+  <section class="max-w-3xl mx-auto px-4 py-10">
+    <h1 class="font-serif text-3xl md:text-4xl mb-2">Articles</h1>
+    <p class="text-brand-900/80 mb-8">Honest takes. Updated regularly.</p>
+
+    <ul class="space-y-4">
+      {posts.map((p) => (
+        <li>
+          <a href={`/blog/${p.slug}/`} class="block bg-white border border-brand-100 rounded-2xl p-5 hover:shadow no-underline transition">
+            <div class="flex items-center gap-2 mb-1 text-xs">
+              <span class="bg-brand-100 text-brand-700 rounded-full px-2 py-0.5 uppercase tracking-wider">
+                {cats[p.data.category] ?? p.data.category}
+              </span>
+              <time datetime={p.data.pubDate.toISOString()} class="text-brand-900/60">
+                {p.data.pubDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+              </time>
+            </div>
+            <h2 class="font-serif text-xl text-brand-900 mb-1">{p.data.heroEmoji} {p.data.title}</h2>
+            <p class="text-sm text-brand-900/75">{p.data.description}</p>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+</BaseLayout>

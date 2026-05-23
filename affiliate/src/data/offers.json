@@ -1,0 +1,38 @@
+{
+  "_comment": "Replace url with your real Adsterra CPA tracking link. id is the URL slug at /go/[id]. Keep ids URL-safe.",
+  "offers": [
+    {
+      "id": "mature-match",
+      "name": "Mature Match",
+      "vertical": "mature",
+      "geo": ["US", "UK", "CA", "AU"],
+      "url": "https://example.com/REPLACE_WITH_ADSTERRA_LINK?subid={clickid}",
+      "headline": "Meet singles 40+ who get it",
+      "description": "Genuine connections for adults who know what they want.",
+      "cta": "Browse Profiles",
+      "active": true
+    },
+    {
+      "id": "curve-connect",
+      "name": "Curve Connect",
+      "vertical": "bbw",
+      "geo": ["US", "UK", "DE", "FR"],
+      "url": "https://example.com/REPLACE_WITH_ADSTERRA_LINK?subid={clickid}",
+      "headline": "Body-positive dating, made simple",
+      "description": "A welcoming community where confidence comes first.",
+      "cta": "Join Free",
+      "active": true
+    },
+    {
+      "id": "local-singles",
+      "name": "Local Singles",
+      "vertical": "regional",
+      "geo": ["MIX"],
+      "url": "https://example.com/REPLACE_WITH_ADSTERRA_LINK?subid={clickid}",
+      "headline": "Real people in your city",
+      "description": "Skip the noise. See who is actually nearby tonight.",
+      "cta": "See Matches",
+      "active": true
+    }
+  ]
+}

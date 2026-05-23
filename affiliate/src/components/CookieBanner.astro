@@ -1,0 +1,30 @@
+---
+// GDPR-style cookie consent. Stores choice in localStorage. No tracking until accepted.
+---
+<div id="cookie-banner" class="fixed bottom-3 inset-x-3 md:inset-x-auto md:right-4 md:bottom-4 md:max-w-sm z-[90] bg-white border border-brand-200 rounded-2xl shadow-xl p-4 text-sm hidden">
+  <p class="mb-3">
+    We use minimal cookies to remember your age confirmation and (if you allow) measure traffic.
+    See our <a class="text-brand-600 underline" href="/privacy/">Privacy Policy</a>.
+  </p>
+  <div class="flex gap-2">
+    <button id="cookie-accept" class="btn-primary text-sm py-2 px-4 flex-1">Accept</button>
+    <button id="cookie-decline" class="btn-ghost text-sm py-2 px-4 flex-1">Decline</button>
+  </div>
+</div>
+<script is:inline>
+  (function () {
+    var KEY = 'reta_cookie';
+    var el = document.getElementById('cookie-banner');
+    if (!el) return;
+    try {
+      if (localStorage.getItem(KEY)) return;
+    } catch (e) {}
+    setTimeout(function () { el.classList.remove('hidden'); }, 1200);
+    function set(v) {
+      try { localStorage.setItem(KEY, v); } catch (e) {}
+      el.classList.add('hidden');
+    }
+    document.getElementById('cookie-accept').addEventListener('click', function () { set('accept'); });
+    document.getElementById('cookie-decline').addEventListener('click', function () { set('decline'); });
+  })();
+</script>

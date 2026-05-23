@@ -1,0 +1,65 @@
+---
+// Static click-tracking redirect page.
+// Visit /go/<offer-id>/ -> records click in localStorage -> redirects to the real Adsterra link.
+// Generated at build time from offers.json. Indexers are blocked via robots.txt and meta noindex.
+
+import offersData from '@/data/offers.json';
+
+export async function getStaticPaths() {
+  return offersData.offers
+    .filter((o) => o.active)
+    .map((offer) => ({ params: { offer: offer.id }, props: { offer } }));
+}
+
+const { offer } = Astro.props;
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="robots" content="noindex,nofollow" />
+  <meta name="referrer" content="no-referrer-when-downgrade" />
+  <title>Redirecting…</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #fdf5f9; color: #1a1020; display: grid; place-items: center; min-height: 100vh; margin: 0; text-align: center; padding: 1rem; }
+    .card { background: #fff; border: 1px solid #fde8f2; border-radius: 1rem; padding: 1.5rem 2rem; max-width: 26rem; }
+    a { color: #c61e63; }
+    .spin { width: 28px; height: 28px; border: 3px solid #fde8f2; border-top-color: #e8317a; border-radius: 50%; animation: r 0.7s linear infinite; margin: 0.75rem auto; }
+    @keyframes r { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="spin" aria-hidden="true"></div>
+    <p>Taking you to <strong>{offer.name}</strong>…</p>
+    <p style="font-size: 0.8rem; opacity: 0.7;">
+      Sponsored · 18+. If you are not redirected, <a id="manual" href={offer.url}>click here</a>.
+    </p>
+  </div>
+  <script is:inline define:vars={{ url: offer.url, id: offer.id }}>
+    (function () {
+      // Generate a click id (subid) for postback attribution.
+      var clickId = (Date.now().toString(36) + Math.random().toString(36).slice(2, 8));
+      // Capture source param if present (e.g., ?src=home or ?src=tiktok)
+      var src = new URLSearchParams(location.search).get('src') || 'direct';
+      var finalUrl = url.replace('{clickid}', encodeURIComponent(clickId + '_' + src));
+
+      // Lightweight first-party click log in localStorage (private, user-only).
+      try {
+        var key = 'reta_clicks';
+        var log = JSON.parse(localStorage.getItem(key) || '[]');
+        log.push({ id: id, src: src, t: Date.now(), c: clickId });
+        if (log.length > 200) log = log.slice(-200);
+        localStorage.setItem(key, JSON.stringify(log));
+      } catch (e) {}
+
+      // Update manual fallback link
+      var m = document.getElementById('manual');
+      if (m) m.setAttribute('href', finalUrl);
+
+      // Redirect after a brief delay so the click is registered.
+      setTimeout(function () { location.replace(finalUrl); }, 250);
+    })();
+  </script>
+</body>
+</html>
