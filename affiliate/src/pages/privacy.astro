@@ -1,0 +1,33 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+const updated = '2026-05-23';
+---
+<BaseLayout title="Privacy Policy" description="How Reta handles your data.">
+  <article class="prose-reta px-4 py-10">
+    <h1 class="font-serif text-3xl">Privacy Policy</h1>
+    <p class="text-sm text-brand-900/60">Last updated: {updated}</p>
+
+    <h2>What we collect</h2>
+    <p>Reta is a static publication. We do not require accounts, and we do not collect names, emails, or phone numbers unless you contact us directly.</p>
+    <ul>
+      <li><strong>Local storage:</strong> we store an "I am 18+" confirmation and your cookie-banner choice on your device only.</li>
+      <li><strong>Click logs:</strong> when you click a sponsored link, we generate a random click ID and store it on your device for attribution. It contains no personal data.</li>
+      <li><strong>Analytics:</strong> if enabled, we use a privacy-respecting analytics provider (e.g., Plausible) that does not set cookies or fingerprint visitors.</li>
+    </ul>
+
+    <h2>Affiliate partners</h2>
+    <p>When you click a sponsored card, you are redirected to a third-party operator (such as a dating service partnered through the Adsterra CPA network). Once you arrive there, that operator's privacy policy applies. We pass only an anonymous click ID, never personal data we do not have.</p>
+
+    <h2>Cookies</h2>
+    <p>We do not set tracking cookies on Reta itself. Affiliate destinations may set their own cookies after you click through.</p>
+
+    <h2>Your choices</h2>
+    <p>You can clear local storage at any time through your browser settings. Decline the cookie banner to disable optional analytics.</p>
+
+    <h2>Children</h2>
+    <p>Reta is intended for adults aged 18 and older. We do not knowingly collect any data from minors.</p>
+
+    <h2>Contact</h2>
+    <p>Privacy questions: <a href="/contact/">contact us</a>.</p>
+  </article>
+</BaseLayout>

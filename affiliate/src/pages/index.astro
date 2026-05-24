@@ -1,0 +1,64 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import OfferCard from '@/components/OfferCard.astro';
+import offersData from '@/data/offers.json';
+import { getCollection } from 'astro:content';
+
+const offers = offersData.offers.filter((o) => o.active);
+const posts = (await getCollection('blog', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3);
+---
+<BaseLayout
+  title="Reta — Honest Dating for Real People"
+  description="Real dating advice and curated resources for grown-ups, body-positive singles, and locals. No judgement, no cringe."
+>
+  <section class="max-w-3xl mx-auto px-4 pt-10 pb-6 text-center">
+    <p class="text-xs uppercase tracking-[0.2em] text-brand-500 mb-3">Welcome to Reta</p>
+    <h1 class="font-serif text-4xl md:text-5xl leading-tight mb-4">
+      Real connections.<br />Every age. Every shape. Every city.
+    </h1>
+    <p class="text-brand-900/80 max-w-xl mx-auto">
+      We test, write about, and link to dating platforms that actually treat their users like adults.
+      No bots. No catfish. No cringe.
+    </p>
+  </section>
+
+  <section class="max-w-3xl mx-auto px-4 pb-2">
+    <h2 class="font-serif text-2xl mb-4 text-center">Editor's picks</h2>
+    <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+      {offers.map((o) => (
+        <OfferCard
+          id={o.id}
+          name={o.name}
+          headline={o.headline}
+          description={o.description}
+          cta={o.cta}
+          vertical={o.vertical}
+          source="home"
+        />
+      ))}
+    </div>
+    <p class="text-center text-xs text-brand-900/60 mt-3">
+      Links above are sponsored. We may earn a commission. <a class="underline" href="/disclaimer/">Learn more</a>.
+    </p>
+  </section>
+
+  <section class="max-w-3xl mx-auto px-4 pt-12 pb-4">
+    <div class="flex items-end justify-between mb-4">
+      <h2 class="font-serif text-2xl">Latest reads</h2>
+      <a href="/blog/" class="text-sm text-brand-600 underline">All articles →</a>
+    </div>
+    <ul class="grid gap-4 sm:grid-cols-3">
+      {posts.map((p) => (
+        <li class="bg-white border border-brand-100 rounded-2xl p-5 hover:shadow transition">
+          <a href={`/blog/${p.slug}/`} class="no-underline">
+            <div class="text-2xl mb-2">{p.data.heroEmoji}</div>
+            <h3 class="font-serif text-lg text-brand-900 mb-1">{p.data.title}</h3>
+            <p class="text-sm text-brand-900/70">{p.data.description}</p>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+</BaseLayout>

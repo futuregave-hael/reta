@@ -1,0 +1,58 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import OfferCard from '@/components/OfferCard.astro';
+import offersData from '@/data/offers.json';
+import { getCollection, type CollectionEntry } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => !data.draft);
+  return posts.map((post) => ({ params: { slug: post.slug }, props: { post } }));
+}
+
+interface Props { post: CollectionEntry<'blog'>; }
+const { post } = Astro.props;
+const { Content } = await post.render();
+
+const featured = post.data.featuredOffer
+  ? offersData.offers.find((o) => o.id === post.data.featuredOffer && o.active)
+  : null;
+---
+<BaseLayout title={post.data.title} description={post.data.description}>
+  <article class="max-w-3xl mx-auto px-4 py-10">
+    <a href="/blog/" class="text-sm text-brand-600 underline">← All articles</a>
+    <header class="mt-4 mb-6 text-center">
+      <div class="text-4xl mb-2">{post.data.heroEmoji}</div>
+      <h1 class="font-serif text-3xl md:text-4xl mb-2">{post.data.title}</h1>
+      <p class="text-brand-900/70">{post.data.description}</p>
+      <p class="text-xs text-brand-900/50 mt-3">
+        Published <time datetime={post.data.pubDate.toISOString()}>
+          {post.data.pubDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+        </time>
+      </p>
+    </header>
+
+    <div class="prose-reta">
+      <Content />
+    </div>
+
+    {featured && (
+      <aside class="mt-10 max-w-md mx-auto">
+        <p class="text-center text-xs uppercase tracking-wider text-brand-500 mb-2">Recommended for this topic</p>
+        <OfferCard
+          id={featured.id}
+          name={featured.name}
+          headline={featured.headline}
+          description={featured.description}
+          cta={featured.cta}
+          vertical={featured.vertical}
+          source={`post-${post.slug}`}
+        />
+      </aside>
+    )}
+
+    <p class="text-center text-xs text-brand-900/50 mt-10 max-w-prose mx-auto">
+      This article may include affiliate links. Reta earns a commission when readers sign up for services we recommend, at no extra cost.
+      Read our full <a class="underline" href="/disclaimer/">disclosure</a>.
+    </p>
+  </article>
+</BaseLayout>

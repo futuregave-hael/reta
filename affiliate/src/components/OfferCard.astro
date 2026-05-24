@@ -1,0 +1,32 @@
+---
+interface Props {
+  id: string;
+  name: string;
+  headline: string;
+  description: string;
+  cta?: string;
+  vertical?: string;
+  source?: string;
+}
+const { id, name, headline, description, cta = 'Learn More', vertical, source } = Astro.props;
+const href = `/go/${id}/${source ? `?src=${source}` : ''}`;
+---
+<a
+  href={href}
+  rel="sponsored nofollow noopener"
+  class="block group bg-white rounded-2xl border border-brand-100 p-5 hover:shadow-lg hover:border-brand-200 transition no-underline"
+  data-offer-id={id}
+>
+  <div class="flex items-center justify-between mb-2">
+    <span class="text-xs uppercase tracking-wider text-brand-500 font-semibold">{name}</span>
+    {vertical && (
+      <span class="text-[10px] uppercase tracking-wider bg-brand-100 text-brand-700 rounded-full px-2 py-0.5">
+        {vertical}
+      </span>
+    )}
+  </div>
+  <h3 class="font-serif text-xl mb-1 text-brand-900 group-hover:text-brand-600 transition">{headline}</h3>
+  <p class="text-sm text-brand-900/75 mb-4">{description}</p>
+  <span class="btn-primary text-sm w-full">{cta} →</span>
+  <p class="text-[10px] text-brand-900/50 mt-3 text-center">Sponsored · 18+</p>
+</a>
