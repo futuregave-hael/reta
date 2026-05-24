@@ -4,11 +4,18 @@ Free, faceless TikTok content kit for the Reta dating affiliate hub. 12 ready-to
 
 ## What's in here
 
+### TikTok pack
 - **`tiktok-bio-and-strategy.md`** — bio copy, link-in-bio strategy, account hygiene rules, 30-day posting schedule.
 - **`tiktok-hooks-and-templates.md`** — 8 hook formulas you can mix and match for any new topic, plus the caption template.
 - **`tiktok-scripts-mature.md`** — 4 full scripts targeting the 40+/50+/60+ audience.
 - **`tiktok-scripts-bbw.md`** — 4 full scripts for body-positive singles.
 - **`tiktok-scripts-regional.md`** — 4 full scripts for local/regional dating.
+
+### Facebook Pro pack
+- **`facebook-pro-strategy.md`** — Pro Mode setup, what works vs what gets you banned, group strategy, Reels Play monetization, posting schedule, and how to repurpose the TikTok scripts to FB Reels.
+- **`facebook-carousel-templates.md`** — 3 ready-to-build 8-slide carousels (one per niche), with exact slide copy, captions, and hashtags.
+
+The TikTok scripts and FB Reels are the same format (9:16, faceless, 22-45s) — record once, post to both. FB Pro adds the carousel layer, the Reels Play Bonus income stream, and access to the older mature-niche audience that doesn't live on TikTok.
 
 ## How to use a script
 
