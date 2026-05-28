@@ -3,6 +3,9 @@
 Fetches historical Bitcoin OHLCV data via OpenBB and computes a set of
 standard technical indicators to produce an objective market snapshot.
 
+Optional: fold in news-headline sentiment via FinBERT / FinGPT
+(see sentiment.py and requirements-sentiment.txt).
+
 This is NOT financial advice. Indicators are descriptive, not predictive.
 No analysis can be 100% accurate - anyone claiming otherwise is misleading.
 
@@ -11,6 +14,7 @@ Usage:
     python analyze.py --days 90
     python analyze.py --symbol ETH-USD      # works for other crypto too
     python analyze.py --export prices.csv   # save raw data
+    python analyze.py --news-file headlines.txt    # add sentiment block
 """
 
 from __future__ import annotations
@@ -233,6 +237,42 @@ def print_report(symbol: str, ind: dict[str, Any]) -> None:
     print(bar)
 
 
+# ----------------------------- sentiment hook ------------------------------ #
+
+def run_sentiment(news_file: str, backend: str = "finbert") -> dict | None:
+    """Score a newline-separated headlines file. Returns aggregated summary or None."""
+    try:
+        from sentiment import aggregate, score_texts
+    except ImportError as exc:
+        print(f"Sentiment module unavailable: {exc}", file=sys.stderr)
+        return None
+
+    with open(news_file, encoding="utf-8") as f:
+        headlines = [line.strip() for line in f if line.strip()]
+    if not headlines:
+        print(f"No headlines in {news_file}", file=sys.stderr)
+        return None
+
+    print(f"Scoring {len(headlines)} headline(s) via '{backend}'...")
+    try:
+        results = score_texts(headlines, backend=backend)
+    except RuntimeError as exc:
+        print(f"Sentiment scoring failed: {exc}", file=sys.stderr)
+        return None
+    return aggregate(results)
+
+
+def print_sentiment_block(agg: dict) -> None:
+    from sentiment import format_summary
+    bar = "=" * 64
+    print()
+    print(bar)
+    print("  NEWS SENTIMENT  (descriptive, NOT advice)")
+    print(bar)
+    print(format_summary(agg))
+    print(bar)
+
+
 # ----------------------------- entrypoint ---------------------------------- #
 
 def main() -> None:
@@ -242,6 +282,8 @@ def main() -> None:
     p.add_argument("--provider", default="yfinance", help="OpenBB data provider (default: yfinance)")
     p.add_argument("--interval", default="1d", help="Candle interval (default: 1d)")
     p.add_argument("--export", help="Optional path to export raw OHLCV CSV")
+    p.add_argument("--news-file", help="Optional file of news headlines (one per line) for sentiment scoring")
+    p.add_argument("--sentiment-backend", choices=["finbert", "fingpt"], default="finbert")
     args = p.parse_args()
 
     print(f"Fetching {args.symbol} history via OpenBB ({args.provider}, {args.interval})...")
@@ -259,6 +301,11 @@ def main() -> None:
 
     ind = compute_indicators(df)
     print_report(args.symbol, ind)
+
+    if args.news_file:
+        agg = run_sentiment(args.news_file, backend=args.sentiment_backend)
+        if agg:
+            print_sentiment_block(agg)
 
 
 if __name__ == "__main__":

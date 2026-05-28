@@ -1,0 +1,11 @@
+# Optional sentiment-analysis dependencies.
+# Install in addition to requirements.txt only if you want sentiment scoring.
+#
+#   pip install -r requirements-sentiment.txt
+#
+# FinBERT (default backend) works on CPU.
+# FinGPT (optional backend) needs a CUDA GPU; uncomment `peft` below.
+
+transformers>=4.40
+torch>=2.1
+# peft>=0.10  # uncomment for the FinGPT LoRA backend
